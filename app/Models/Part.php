@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Part extends Model
+{
+    public $timestamps = false;
+
+    protected $fillable = ['created_by'];
+
+    // Quan hệ Part được tạo bởi User (creator)
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // Một Part có nhiều Revisions
+    public function revisions()
+    {
+        return $this->hasMany(Revision::class);
+    }
+
+    // Một Part có nhiều Group assembler (dùng khóa assembler_id)
+    public function assemblerGroups()
+    {
+        return $this->hasMany(Group::class, 'assembler_id');
+    }
+}
