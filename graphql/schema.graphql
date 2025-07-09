@@ -24,7 +24,7 @@ type Version {
     code: String!
     based_upon_version_id: Version
     description: String
-    type_id: Type!
+    type: Type!
     status: String
     revision: Revision! @belongsTo
 }

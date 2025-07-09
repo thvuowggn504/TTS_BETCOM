@@ -44,4 +44,5 @@ class Part extends Model
             'latest_version'
         )->where('status', 'Published');
     }
+
 }

@@ -12,18 +12,23 @@ class PartQuery
     {
         return Version::whereHas('revision', function ($q) use ($args) {
             $q->where('part_id', $args['partId'])
-              ->where('id', $args['revisionId']);
+                ->where('id', $args['revisionId']);
         })
-        ->where('version_code', $args['versionCode'])
-        ->first();
+            ->where('version_code', $args['versionCode'])
+            ->first();
     }
 
-    public function getAllParts($_, array $args) {
-        return Part::with([
-            'revisions.versions' => function($q) {
-                $q ->where('status','Published')->latest();
-            },
-            'additionalFields'
-        ])->get();
+    public function getAllParts($_, array $args)
+    {
+        return Part::whereHas('revisions.versions', function ($query) {
+            $query->where('status', 'Published');
+        })
+            ->with([
+                'revisions.versions' => function ($q) {
+                    $q->where('status', 'Published')->latest();
+                },
+                'additionalFields'
+            ])
+            ->get();
     }
 }
