@@ -1,33 +1,305 @@
-type Part {
-  id: ID!
-  revisions: [Revision!]! @hasMany
+  type Part {
+    id: ID!
+    revisions: [Revision!]! @hasMany
+  }
+
+  type Revision {
+    id: ID!
+    revision_code: String!
+    part: Part! @belongsTo
+    versions: [Version!]! @hasMany
+  }
+
+  type Type {
+    id: ID!
+    name: String!
+  }
+
+  type Version {
+    id: ID!
+    version_code: String!
+    name: String!
+    code: String!
+    based_upon_version_id: Version
+    description: String
+    type_id: Type!
+    status: String
+    revision: Revision! @belongsTo
+  }
+
+  type Query {
+    hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
+    getVersion(partId: ID!, revisionId: ID!, versionCode: String!): Version @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
+  }
+
+  type GroupPart {
+    id: ID!
+    group_id: ID!
+    part_id: ID!
+    quantity: Int!
+    group: Group @belongsTo
+    part: Part @belongsTo
+    created_at: DateTime
+    updated_at: DateTime
+}
+
+type Query {
+    groupParts: [GroupPart!]! @all
+    groupPart(id: ID!): GroupPart @find
+}
+
+type Mutation {
+    createGroupPart(input: CreateGroupPartInput!): GroupPart
+        @field(resolver: "App\\GraphQL\\Mutations\\GroupPartResolver@create")
+
+    updateGroupPart(id: ID!, input: UpdateGroupPartInput!): GroupPart
+        @update(model: "App\\Models\\GroupPart")
+
+    deleteGroupPart(id: ID!): Boolean @delete(model: "App\\Models\\GroupPart")
+}
+
+input CreateGroupPartInput {
+    group_id: ID! @rules(apply: ["required", "exists:groups,id"])
+    part_id: ID! @rules(apply: ["required", "exists:parts,id"])
+    quantity: Int! @rules(apply: ["required", "integer", "min:1"])
+}
+
+input UpdateGroupPartInput {
+    quantity: Int! @rules(apply: ["required", "integer", "min:1"])
+}
+
+type Group {
+    id: ID!
+    assembler_id: ID!
+    name: String!
+    version_id: ID
+    is_optional: Boolean
+    created_at: DateTime
+    updated_at: DateTime
+
+    assembler: Part @belongsTo
+    version: Version @belongsTo
+    groupParts: [GroupPart!]! @hasMany
+}
+
+extend type Query {
+    groups: [Group!]! @all
+    group(id: ID!): Group @find
+}
+
+extend type Mutation {
+    createGroup(input: CreateGroupInput!): Group
+        @create(model: "App\\Models\\Group")
+
+    updateGroup(id: ID!, input: UpdateGroupInput!): Group
+        @update(model: "App\\Models\\Group")
+
+    deleteGroup(id: ID!): Boolean @delete(model: "App\\Models\\Group")
+}
+
+input CreateGroupInput {
+    assembler_id: ID! @rules(apply: ["required", "exists:parts,id"])
+    name: String! @rules(apply: ["required", "string", "max:100"])
+    version_id: ID @rules(apply: ["nullable", "exists:versions,id"])
+    is_optional: Boolean
+}
+
+input UpdateGroupInput {
+    name: String @rules(apply: ["string", "max:100"])
+    is_optional: Boolean
+}
+
+type Version {
+    id: ID!
+    revision_id: ID!
+    status: String
+    version_number: String
+    created_at: DateTime
+    updated_at: DateTime
+
+    revision: Revision @belongsTo
+}
+
+extend type Query {
+    parts: [Part!]! @all
+    part(id: ID!): Part @find
+}
+
+extend type Mutation {
+    createPart(input: CreatePartInput!): Part
+        @create(model: "App\\Models\\Part")
+
+    updatePart(id: ID!, input: UpdatePartInput!): Part
+        @update(model: "App\\Models\\Part")
+
+    deletePart(id: ID!): Boolean @delete(model: "App\\Models\\Part")
+}
+
+input CreatePartInput {
+    created_by: ID @rules(apply: ["nullable", "exists:users,id"])
+}
+
+input UpdatePartInput {
+    created_by: ID @rules(apply: ["nullable", "exists:users,id"])
 }
 
 type Revision {
   id: ID!
+  part_id: ID!
   revision_code: String!
-  part: Part! @belongsTo
+  latest_version: ID
+  created_by: ID
+  created_at: DateTime
+  updated_at: DateTime
+
   versions: [Version!]! @hasMany
+  part: Part @belongsTo
+}
+
+extend type Query {
+  revisions: [Revision!]! @all
+  revision(id: ID!): Revision @find
+}
+
+extend type Mutation {
+  createRevision(input: CreateRevisionInput!): Revision
+    @create(model: "App\\Models\\Revision")
+
+  updateRevision(id: ID!, input: UpdateRevisionInput!): Revision
+    @update(model: "App\\Models\\Revision")
+
+  deleteRevision(id: ID!): Boolean
+    @delete(model: "App\\Models\\Revision")
+
+  createRevisionFromVersion(input: CreateRevisionFromVersionInput!): Revision
+    @field(resolver: "App\\GraphQL\\Mutations\\RevisionResolver@createFromVersion")
+}
+
+input CreateRevisionInput {
+  part_id: ID! @rules(apply: ["required", "exists:parts,id"])
+  revision_code: String! @rules(apply: ["required", "string", "max:30"])
+  created_by: ID @rules(apply: ["nullable", "exists:users,id"])
+}
+
+input UpdateRevisionInput {
+  revision_code: String @rules(apply: ["string", "max:30"])
+  latest_version: ID @rules(apply: ["nullable", "exists:versions,id"])
+}
+
+input CreateRevisionFromVersionInput {
+  version_id: ID! @rules(apply: ["required", "exists:versions,id"])
+  revision_code: String! @rules(apply: ["required", "string", "max:30"])
+  created_by: ID @rules(apply: ["nullable", "exists:users,id"])
 }
 
 type Type {
   id: ID!
   name: String!
+  created_at: DateTime
+  updated_at: DateTime
+
+  versions: [Version!]! @hasMany
 }
 
-type Version {
+extend type Query {
+  types: [Type!]! @all
+  type(id: ID!): Type @find
+}
+
+extend type Mutation {
+  createType(input: CreateTypeInput!): Type
+    @create(model: "App\\Models\\Type")
+
+  updateType(id: ID!, input: UpdateTypeInput!): Type
+    @update(model: "App\\Models\\Type")
+
+  deleteType(id: ID!): Boolean
+    @delete(model: "App\\Models\\Type")
+}
+
+input CreateTypeInput {
+  name: String! @rules(apply: ["required", "string", "max:100"])
+}
+
+input UpdateTypeInput {
+  name: String! @rules(apply: ["required", "string", "max:100"])
+}
+
+scalar JSON @scalar(class: "MLL\\GraphQLScalars\\JSON")
+
+type CodebuilderRule {
   id: ID!
-  version_code: String!
-  name: String!
-  code: String!
-  based_upon_version_id: Version
-  description: String
-  type_id: Type!
-  status: String
-  revision: Revision! @belongsTo
+  version_id: ID!
+  rule: JSON!
+  created_at: DateTime
+  updated_at: DateTime
+
+  version: Version @belongsTo
 }
 
-type Query {
-  hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
-  getVersion(partId: ID!, revisionId: ID!, versionCode: String!): Version @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
+extend type Query {
+  codebuilderRules: [CodebuilderRule!]! @all
+  codebuilderRule(id: ID!): CodebuilderRule @find
+}
+
+extend type Mutation {
+  createCodebuilderRule(input: CreateCodebuilderRuleInput!): CodebuilderRule
+    @field(resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@create")
+
+  updateCodebuilderRule(id: ID!, input: UpdateCodebuilderRuleInput!): CodebuilderRule
+    @field(resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@update")
+
+  deleteCodebuilderRule(id: ID!): Boolean
+    @delete(model: "App\\Models\\CodebuilderRule")
+}
+
+input CreateCodebuilderRuleInput {
+  version_id: ID! @rules(apply: ["required", "exists:versions,id"])
+  rule: JSON! @rules(apply: ["required", "array"])
+}
+
+input UpdateCodebuilderRuleInput {
+  rule: JSON! @rules(apply: ["required", "array"])
+}
+
+type AdditionalField {
+  id: ID!
+  name: String!
+  value: String
+  type_id: ID
+  data_type: String
+  created_at: DateTime
+  updated_at: DateTime
+
+  type: Type @belongsTo
+}
+
+extend type Query {
+  additionalFields: [AdditionalField!]! @all
+  additionalField(id: ID!): AdditionalField @find
+}
+
+extend type Mutation {
+  createAdditionalField(input: CreateAdditionalFieldInput!): AdditionalField
+    @create(model: "App\\Models\\AdditionalField")
+
+  updateAdditionalField(id: ID!, input: UpdateAdditionalFieldInput!): AdditionalField
+    @update(model: "App\\Models\\AdditionalField")
+
+  deleteAdditionalField(id: ID!): Boolean
+    @delete(model: "App\\Models\\AdditionalField")
+}
+
+input CreateAdditionalFieldInput {
+  name: String! @rules(apply: ["required", "string", "max:100"])
+  value: String @rules(apply: ["nullable", "string", "max:50"])
+  type_id: ID @rules(apply: ["nullable", "exists:types,id"])
+  data_type: String @rules(apply: ["in:string,int,bool"])
+}
+
+input UpdateAdditionalFieldInput {
+  name: String @rules(apply: ["string", "max:100"])
+  value: String @rules(apply: ["nullable", "string", "max:50"])
+  type_id: ID @rules(apply: ["nullable", "exists:types,id"])
+  data_type: String @rules(apply: ["in:string,int,bool"])
 }
