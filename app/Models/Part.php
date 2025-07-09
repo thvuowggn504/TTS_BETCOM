@@ -27,4 +27,21 @@ class Part extends Model
     {
         return $this->hasMany(Group::class, 'assembler_id');
     }
+
+    public function additionalFields()
+    {
+        return $this->hasMany(AdditionalField::class, 'id');
+    }
+
+    public function latestVersion()
+    {
+        return $this->hasOneThrough(
+            Version::class,
+            Revision::class,
+            'part_id',
+            'id',
+            'id',
+            'latest_version'
+        )->where('status', 'Published');
+    }
 }

@@ -30,17 +30,6 @@ return new class extends Migration {
             $table->string('name', 100);
         });
 
-        // ADDITIONAL_FIELDS
-        Schema::create('additional_fields', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 100)->nullable();
-            $table->string('value', 50)->nullable();
-            $table->unsignedBigInteger('type_id')->nullable();
-            $table->enum('data_type', ['string', 'int', 'bool'])->default('string');
-
-            $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
-        });
-
         // PARTS
         Schema::create('parts', function (Blueprint $table) {
             $table->id();
@@ -49,6 +38,21 @@ return new class extends Migration {
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
+
+        // ADDITIONAL_FIELDS
+        Schema::create('additional_fields', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 100)->nullable();
+            $table->string('value', 50)->nullable();
+            $table->unsignedBigInteger('part_id');
+            $table->enum('data_type', ['string', 'int', 'bool'])->default('string');
+
+            $table->foreign('part_id')->references('id')->on('parts')->onDelete('cascade');
+            //$table->unsignedBigInteger('type_id')->nullable();
+
+            //$table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
+        });
+
 
         // REVISIONS (Trước VERSIONS để tránh lỗi FK)
         Schema::create('revisions', function (Blueprint $table) {
