@@ -1,0 +1,33 @@
+type Part {
+  id: ID!
+  revisions: [Revision!]! @hasMany
+}
+
+type Revision {
+  id: ID!
+  revision_code: String!
+  part: Part! @belongsTo
+  versions: [Version!]! @hasMany
+}
+
+type Type {
+  id: ID!
+  name: String!
+}
+
+type Version {
+  id: ID!
+  version_code: String!
+  name: String!
+  code: String!
+  based_upon_version_id: Version
+  description: String
+  type_id: Type!
+  status: String
+  revision: Revision! @belongsTo
+}
+
+type Query {
+  hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
+  getVersion(partId: ID!, revisionId: ID!, versionCode: String!): Version @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
+}
