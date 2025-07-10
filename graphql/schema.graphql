@@ -4,7 +4,7 @@ type Part {
     code: String!
     type: Type!
     revisions: [Revision!]! @hasMany
-    latestVersion: Version
+    selected_version: Version
     additionalFields: [AdditionalField]
 }
 

@@ -14,6 +14,7 @@ class PartSeeder extends Seeder
 {
     public function run(): void
     {
+        
         // Tạo user giả nếu chưa có
         $userId = DB::table('users')->insertGetId([
             'name' => 'Seeder User',
@@ -33,6 +34,8 @@ class PartSeeder extends Seeder
                 'description' => "Description for Part $i",
                 'type_id' => 1,
                 'created_by' => $userId,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
             ]);
 
             // Tạo 1–2 Revisions cho mỗi Part
@@ -44,9 +47,11 @@ class PartSeeder extends Seeder
                     'part_id' => $partId,
                     'revision_code' => $revisionCode,
                     'created_by' => $userId,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
                 ]);
 
-                $revisionCounter++;
+
 
                 // Tạo 1–4 Versions cho mỗi Revision
                 $versionCount = rand(1, 4);
@@ -63,7 +68,7 @@ class PartSeeder extends Seeder
 
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
-                        'version_code' => "$revisionCode.$v",
+                        'version_code' => "$revisionCounter.$v",
                         'name' => "Version $versionCounter",
                         'code' => "V-$versionCounter",
                         'description' => "Description for version $versionCounter",
@@ -71,11 +76,14 @@ class PartSeeder extends Seeder
                         'status' => $status,
                         'enable_assembly_groups' => rand(0, 1),
                         'created_by' => $userId,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
                     ]);
 
                     $versionCounter++;
                     $latestVersionId = $versionId;
                 }
+                $revisionCounter++;
 
                 // Cập nhật latest_version cho revision
                 DB::table('revisions')->where('id', $revisionId)->update([
