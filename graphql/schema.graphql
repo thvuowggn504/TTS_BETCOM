@@ -5,7 +5,8 @@ type Part {
     type: Type!
     revisions: [Revision!]! @hasMany
     selected_version: Version
-    additionalFields: [AdditionalField]
+    additional_fields: [AdditionalField]
+    created_at: String!
 }
 
 type Revision {
@@ -46,12 +47,33 @@ extend type Query {
     hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
     getVersion(partId: ID!, revisionId: ID!, versionCode: String!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
-    
+        
+    types: [Type] @all
     parts: [Part!] @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
 }
 
+input CreatePartInput {
+    name: String!
+    code: String!
+    type_id: Int!
+    description: String
+    additional_fields: [AdditionalFieldInput!] # Các trường bổ sung theo type
+}
+
+input AdditionalFieldInput {
+    name: String!
+    value: String!
+    data_type: DataTypeEnum = STRING
+}
+
+enum DataTypeEnum {
+    STRING
+    INT
+    BOOL
+}
+
 extend type Mutation {
-    createPart(input: CreatePartInput): Part @field(resolver: "App\\GraphQL\\mutations\\PartResolver@createPart")
+    createPart(input: CreatePartInput!): Part @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
 }
 
 # ----------------------------------------------------------------------------------------------

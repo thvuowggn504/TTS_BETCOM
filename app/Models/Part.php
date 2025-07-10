@@ -9,10 +9,10 @@ class Part extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'created_by', 
-        'name', 
-        'code', 
-        'description', 
+        'created_by',
+        'name',
+        'code',
+        'description',
         'type_id',
         'created_at',
         'updated_at'
@@ -43,7 +43,7 @@ class Part extends Model
 
     public function additionalFields()
     {
-        return $this->hasMany(AdditionalField::class, 'id');
+        return $this->hasMany(AdditionalField::class);
     }
 
     public function latestVersion()
@@ -57,5 +57,4 @@ class Part extends Model
             'latest_version'
         )->where('status', 'Published');
     }
-
 }
