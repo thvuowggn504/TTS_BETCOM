@@ -49,6 +49,8 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
         
     types: [Type] @all
+
+    getPartById(id: ID!): Part @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartById")
     parts: [Part!] @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
 }
 
