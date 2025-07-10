@@ -11,20 +11,20 @@ class AdditionalFieldSeeder extends Seeder
 {
     public function run(): void
     {
-        $type = Type::where('name', 'led')->first();
+        // $type = Type::where('name', 'led')->first();
 
-        AdditionalField::create([
-            'name' => 'Colour Temperature (K)',
-            'value' => '3000K',
-            'type_id' => $type->id,
-            'data_type' => 'string'
-        ]);
+        // AdditionalField::create([
+        //     'name' => 'Colour Temperature (K)',
+        //     'value' => '3000K',
+        //     'type_id' => $type->id,
+        //     'data_type' => 'string'
+        // ]);
 
-        AdditionalField::create([
-            'name' => 'LED Part No',
-            'value' => 'LED-XYZ123',
-            'type_id' => $type->id,
-            'data_type' => 'string'
-        ]);
+        // AdditionalField::create([
+        //     'name' => 'LED Part No',
+        //     'value' => 'LED-XYZ123',
+        //     'type_id' => $type->id,
+        //     'data_type' => 'string'
+        // ]);
     }
 }

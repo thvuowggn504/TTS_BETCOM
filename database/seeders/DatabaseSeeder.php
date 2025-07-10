@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         GroupSeeder::class,
         CodebuilderRuleSeeder::class,
         AdditionalFieldSeeder::class,
+        VersionSeeder::class
     ]);
     }
 }
