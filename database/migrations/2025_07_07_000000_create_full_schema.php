@@ -33,9 +33,14 @@ return new class extends Migration {
         // PARTS
         Schema::create('parts', function (Blueprint $table) {
             $table->id();
+            $table->string('name', 100);
+            $table->text('code');
+            $table->text('description')->nullable();
+            $table->unsignedBigInteger('type_id')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamp('created_at')->useCurrent();
-
+            
+            $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
 

@@ -8,12 +8,17 @@ class Part extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['created_by'];
+    protected $fillable = ['created_by', 'name', 'code', 'description', 'type_id',];
 
     // Quan hệ Part được tạo bởi User (creator)
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function type()
+    {
+        return $this->belongsTo(Type::class);
     }
 
     // Một Part có nhiều Revisions

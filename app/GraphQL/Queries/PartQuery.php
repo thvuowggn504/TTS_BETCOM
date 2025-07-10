@@ -20,12 +20,33 @@ class PartQuery
 
     public function getAllParts($_, array $args)
     {
+        // return Part::whereHas('revisions.versions', function ($query) {
+        //     $query->where('status', 'Published');
+        // })
+        //     ->with([
+        //         'revisions.versions' => function ($q) {
+        //             $q->where('status', 'Published')->latest();
+        //         },
+        //         'additionalFields'
+        //     ])
+        //     ->get();
         return Part::whereHas('revisions.versions', function ($query) {
-            $query->where('status', 'Published');
+            $query->whereIn('status', ['Published', 'Draft']);
         })
             ->with([
-                'revisions.versions' => function ($q) {
-                    $q->where('status', 'Published')->latest();
+                'revisions' => function ($revisionQuery) {
+                    $revisionQuery->with([
+                        'versions' => function ($versionQuery) {
+                            // Ưu tiên Published, nếu không thì lấy Draft
+                            $versionQuery->orderByRaw("
+                        CASE 
+                            WHEN status = 'Published' THEN 0
+                            WHEN status = 'Draft' THEN 1
+                            ELSE 2
+                        END
+                    ")->limit(1);
+                        }
+                    ]);
                 },
                 'additionalFields'
             ])

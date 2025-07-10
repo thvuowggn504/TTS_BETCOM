@@ -17,10 +17,9 @@ class DatabaseSeeder extends Seeder
         TypeSeeder::class,
         UserSeeder::class,
         PartSeeder::class,
-        GroupSeeder::class,
+        //GroupSeeder::class,
         CodebuilderRuleSeeder::class,
         AdditionalFieldSeeder::class,
-        VersionSeeder::class
     ]);
     }
 }
