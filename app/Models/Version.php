@@ -18,7 +18,9 @@ class Version extends Model
         'type_id',
         'status',
         'enable_assembly_groups',
-        'created_by'
+        'created_by',
+        'created_at',
+        'updated_at'
     ];
 
     public function revision()

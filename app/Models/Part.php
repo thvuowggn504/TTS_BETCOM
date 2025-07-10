@@ -8,7 +8,15 @@ class Part extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['created_by', 'name', 'code', 'description', 'type_id',];
+    protected $fillable = [
+        'created_by', 
+        'name', 
+        'code', 
+        'description', 
+        'type_id',
+        'created_at',
+        'updated_at'
+    ];
 
     // Quan hệ Part được tạo bởi User (creator)
     public function creator()

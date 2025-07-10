@@ -1,5 +1,8 @@
 type Part {
     id: ID!
+    name: String!
+    code: String!
+    type: Type!
     revisions: [Revision!]! @hasMany
     latestVersion: Version
     additionalFields: [AdditionalField]

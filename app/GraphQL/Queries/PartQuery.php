@@ -20,16 +20,6 @@ class PartQuery
 
     public function getAllParts($_, array $args)
     {
-        // return Part::whereHas('revisions.versions', function ($query) {
-        //     $query->where('status', 'Published');
-        // })
-        //     ->with([
-        //         'revisions.versions' => function ($q) {
-        //             $q->where('status', 'Published')->latest();
-        //         },
-        //         'additionalFields'
-        //     ])
-        //     ->get();
         return Part::whereHas('revisions.versions', function ($query) {
             $query->whereIn('status', ['Published', 'Draft']);
         })

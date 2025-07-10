@@ -38,7 +38,7 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->unsignedBigInteger('type_id')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
@@ -66,7 +66,7 @@ return new class extends Migration {
             $table->string('revision_code', 30);
             $table->unsignedBigInteger('latest_version')->nullable(); // FK tới versions sẽ thêm sau
             $table->unsignedBigInteger('created_by')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('part_id')->references('id')->on('parts')->onDelete('cascade');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
@@ -85,7 +85,7 @@ return new class extends Migration {
             $table->enum('status', ['Draft', 'Published', 'Archived'])->default('Draft');
             $table->boolean('enable_assembly_groups')->default(false);
             $table->unsignedBigInteger('created_by')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('revision_id')->references('id')->on('revisions')->onDelete('cascade');
             $table->foreign('based_upon_version_id')->references('id')->on('versions')->onDelete('set null');

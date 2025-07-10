@@ -8,7 +8,14 @@ class Revision extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['part_id', 'revision_code', 'latest_version', 'created_by'];
+    protected $fillable = [
+        'part_id',
+        'revision_code',
+        'latest_version',
+        'created_by', 
+        'created_at',
+        'updated_at'
+    ];
 
     public function part()
     {
