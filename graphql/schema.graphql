@@ -47,6 +47,10 @@ extend type Query {
     parts: [Part!] @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
 }
 
+extend type Mutation {
+    createPart(input: CreatePartInput): Part @field(resolver: "App\\GraphQL\\mutations\\PartResolver@createPart")
+}
+
 # ----------------------------------------------------------------------------------------------
 
 type GroupPart {
