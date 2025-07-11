@@ -52,4 +52,9 @@ class Version extends Model
     {
         return $this->hasMany(CodebuilderRule::class);
     }
+
+    public function additional_fields()
+    {
+        return $this->hasMany(AdditionalField::class);
+    }
 }
