@@ -14,7 +14,7 @@ class PartSeeder extends Seeder
 {
     public function run(): void
     {
-        
+
         // Tạo user giả nếu chưa có
         $userId = DB::table('users')->insertGetId([
             'name' => 'Seeder User',
@@ -23,7 +23,7 @@ class PartSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        $revisionCounter = 1;
+
         $versionCounter = 1;
 
         for ($i = 1; $i <= 5; $i++) {
@@ -37,9 +37,10 @@ class PartSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
-
+            
             // Tạo 1–2 Revisions cho mỗi Part
             $revisionCount = rand(1, 2);
+            $revisionCounter = 1;
 
             for ($r = 1; $r <= $revisionCount; $r++) {
                 $revisionCode = $revisionCounter . '.0';
@@ -68,7 +69,7 @@ class PartSeeder extends Seeder
 
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
-                        'version_code' => "$revisionCounter.$v",
+                        'version_code' => "1.$v",
                         'name' => "Version $versionCounter",
                         'code' => "V-$versionCounter",
                         'description' => "Description for version $versionCounter",
