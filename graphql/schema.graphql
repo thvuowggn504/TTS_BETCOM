@@ -77,9 +77,10 @@ extend type Query {
 input CreatePartInput {
     name: String!
     code: String!
-    type_id: Int!
+    type_id: String!
     description: String
     additional_fields: [AdditionalFieldInput!] # Các trường bổ sung theo type
+    enable_assembly_groups: Boolean!
 }
 
 input AdditionalFieldInput {
