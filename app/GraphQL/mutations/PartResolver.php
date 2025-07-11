@@ -22,6 +22,7 @@ class PartResolver
                 'description' => $input['description'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
+                'created_by' => 1
             ]);
 
             $revision = Revision::create([
@@ -29,6 +30,7 @@ class PartResolver
                 'revision_code' => '1.0',
                 'created_at' => now(),
                 'updated_at' => now(),
+                'created_by' => 1
             ]);
 
             $version = Version::create([
@@ -41,6 +43,7 @@ class PartResolver
                 'enable_assembly_groups' => $input['enable_assembly_groups'],
                 'created_at' => now(),
                 'updated_at' => now(),
+                'created_by' => 1
             ]);
 
             $revision->update(['latest_version' => $version->id]);

@@ -9,7 +9,7 @@ type Part {
     additional_fields: [AdditionalField]
     created_at: String!
     updated_at: String!
-    creator: User!
+    creator: User
 }
 
 type Revision {
@@ -19,7 +19,7 @@ type Revision {
     versions: [Version!]! @hasMany
     latest_version: String!
     updated_at: String!
-    creator: User!
+    creator: User
 }
 
 type User {
@@ -48,7 +48,8 @@ type Version {
             resolver: "App\\GraphQL\\Mutations\\PartResolver@resolveAdditionalFields"
         )
     updated_at: String!
-    creator: User!
+    creator: User
+    enable_assembly_groups: Boolean!
 }
 
 type AdditionalField {
