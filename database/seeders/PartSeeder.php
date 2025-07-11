@@ -55,15 +55,19 @@ class PartSeeder extends Seeder
 
                 // Tạo 1–4 Versions cho mỗi Revision
                 $versionCount = rand(1, 4);
-                $hasStatus = false;
                 $latestVersionId = null;
 
                 for ($v = 1; $v <= $versionCount; $v++) {
                     $status = 'Archived';
-                    // Đảm bảo chỉ có 1 Draft hoặc Published
-                    if (!$hasStatus || $v === $versionCount) {
-                        $status = rand(0, 1) ? 'Draft' : 'Published';
-                        $hasStatus = true;
+                    if (1 == $versionCount) {
+                        $status = 'Draft';
+                    }
+                    if ($v == $versionCount && $v > 1) {
+                        $status = 'Draft';
+                        $previousVersion = Version::findOrFail($latestVersionId);
+                        $previousVersion->update([
+                            'status' => 'Published'
+                        ]);
                     }
 
                     $versionId = DB::table('versions')->insertGetId([

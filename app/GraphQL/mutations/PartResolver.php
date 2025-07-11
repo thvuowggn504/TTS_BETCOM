@@ -135,4 +135,44 @@ class PartResolver
 
         return $part->additionalFields;
     }
+
+    public function updateVersionStatus($_, array $args)
+    {
+        return DB::transaction(function () use ($args) {
+            $input = $args['id'];
+            $userId = 2; // Lấy user hiện tại hoặc mặc định là 2
+
+            // 1. Cập nhật version hiện tại thành Published
+            $version = Version::findOrFail($input);
+            $version->update([
+                'status' => "Published",
+                'updated_at' => now(),
+                'created_by' => $userId,
+            ]);
+
+            // 2. Cập nhật tất cả version khác trong revision thành Archived
+            Version::where('revision_id', $version->revision_id)
+                ->where('id', '!=', $version->id)
+                ->update([
+                    'status' => 'Archived',
+                    'updated_at' => now(),
+                ]);
+
+            // 3. Cập nhật revision
+            $revision = Revision::findOrFail($version->revision_id);
+            $revision->update([
+                'latest_version' => $version->id,
+                'updated_at' => now(),
+                'created_by' => $userId,
+            ]);
+
+            // 4. Cập nhật part liên quan
+            Part::where('id', $revision->part_id)->update([
+                'updated_at' => now(),
+                'created_by' => $userId,
+            ]);
+
+            return $version->fresh();
+        });
+    }
 }
