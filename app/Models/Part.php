@@ -8,12 +8,25 @@ class Part extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['created_by'];
+    protected $fillable = [
+        'created_by',
+        'name',
+        'code',
+        'description',
+        'type_id',
+        'created_at',
+        'updated_at'
+    ];
 
     // Quan hệ Part được tạo bởi User (creator)
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function type()
+    {
+        return $this->belongsTo(Type::class);
     }
 
     // Một Part có nhiều Revisions
@@ -30,7 +43,7 @@ class Part extends Model
 
     public function additionalFields()
     {
-        return $this->hasMany(AdditionalField::class, 'id');
+        return $this->hasMany(AdditionalField::class);
     }
 
     public function latestVersion()
@@ -44,5 +57,4 @@ class Part extends Model
             'latest_version'
         )->where('status', 'Published');
     }
-
 }
