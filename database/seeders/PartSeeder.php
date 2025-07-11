@@ -14,7 +14,7 @@ class PartSeeder extends Seeder
 {
     public function run(): void
     {
-        
+
         // Tạo user giả nếu chưa có
         $userId = DB::table('users')->insertGetId([
             'name' => 'Seeder User',
@@ -23,23 +23,25 @@ class PartSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        $revisionCounter = 1;
         $versionCounter = 1;
 
         for ($i = 1; $i <= 5; $i++) {
+
+            $type_id = rand(1, 6);
             // Tạo Part
             $partId = DB::table('parts')->insertGetId([
                 'name' => "Part $i",
                 'code' => "PART-$i",
                 'description' => "Description for Part $i",
-                'type_id' => 1,
+                'type_id' => $type_id,
                 'created_by' => $userId,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
 
             // Tạo 1–2 Revisions cho mỗi Part
-            $revisionCount = rand(1, 2);
+            $revisionCount = rand(1, 3);
+            $revisionCounter = 1;
 
             for ($r = 1; $r <= $revisionCount; $r++) {
                 $revisionCode = $revisionCounter . '.0';
@@ -50,8 +52,6 @@ class PartSeeder extends Seeder
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
-
-
 
                 // Tạo 1–4 Versions cho mỗi Revision
                 $versionCount = rand(1, 4);
@@ -68,11 +68,12 @@ class PartSeeder extends Seeder
 
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
-                        'version_code' => "$revisionCounter.$v",
+                        'version_code' => "1.$v",
                         'name' => "Version $versionCounter",
                         'code' => "V-$versionCounter",
+                        'based_upon_version_id' => $latestVersionId,
                         'description' => "Description for version $versionCounter",
-                        'type_id' => 3,
+                        'type_id' => $type_id,
                         'status' => $status,
                         'enable_assembly_groups' => rand(0, 1),
                         'created_by' => $userId,

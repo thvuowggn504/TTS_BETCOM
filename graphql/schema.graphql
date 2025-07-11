@@ -7,6 +7,8 @@ type Part {
     selected_version: Version
     additional_fields: [AdditionalField]
     created_at: String!
+    updated_at: String!
+    creator: User!
 }
 
 type Revision {
@@ -14,6 +16,15 @@ type Revision {
     revision_code: String!
     part: Part! @belongsTo
     versions: [Version!]! @hasMany
+    latest_version: String!
+    updated_at: String!
+    creator: User!
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
 }
 
 type Type {
@@ -31,9 +42,10 @@ type Version {
     type: Type!
     status: String
     revision: Revision! @belongsTo
-
     additional_fields: [AdditionalField!]!
     @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@resolveAdditionalFields")
+    updated_at: String!
+    creator: User!
 }
 
 type AdditionalField {
@@ -50,9 +62,13 @@ extend type Query {
     hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
     getVersion(partId: ID!, revisionId: ID!, versionCode: String!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
-        
+
     types: [Type] @all
-    parts: [Part!] @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
+
+    getPartById(id: ID!): Part
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartById")
+    parts: [Part!]
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
 }
 
 input CreatePartInput {
@@ -76,7 +92,8 @@ enum DataTypeEnum {
 }
 
 extend type Mutation {
-    createPart(input: CreatePartInput!): Part @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
+    createPart(input: CreatePartInput!): Part
+        @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
 }
 
 # ----------------------------------------------------------------------------------------------

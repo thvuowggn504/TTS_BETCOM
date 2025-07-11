@@ -74,5 +74,14 @@ class PartQuery
 
                 return $part;
             });
+
+    }
+    
+    public function getPartById($_, array $args)
+    {
+        return Part::with([
+            'revisions.versions',
+            'additionalFields',
+        ])->find($args['id']);
     }
 }
