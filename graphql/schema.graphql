@@ -3,6 +3,7 @@ type Part {
     name: String!
     code: String!
     type: Type!
+    description: String
     revisions: [Revision!]! @hasMany
     selected_version: Version
     additional_fields: [AdditionalField]
@@ -43,7 +44,9 @@ type Version {
     status: String
     revision: Revision! @belongsTo
     additional_fields: [AdditionalField!]!
-    @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@resolveAdditionalFields")
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@resolveAdditionalFields"
+        )
     updated_at: String!
     creator: User!
 }
@@ -220,21 +223,21 @@ input UpdateCodebuilderRuleInput {
 }
 
 input EditPartInput {
-  id: ID!
-  name: String
-  code: String
-  description: String
-  type_id: Int
-  additional_fields: [AdditionalFieldInput!]
+    id: ID!
+    name: String
+    code: String
+    description: String
+    type_id: Int
+    additional_fields: [AdditionalFieldInput!]
 }
 
 input AdditionalFieldInput {
-  name: String!
-  value: String
-  data_type: String
+    name: String!
+    value: String
+    data_type: String
 }
 
 extend type Mutation {
-  editPart(input: EditPartInput!): Version
-    @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@editPart")
+    editPart(input: EditPartInput!): Version
+        @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@editPart")
 }

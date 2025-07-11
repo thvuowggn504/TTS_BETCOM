@@ -11,12 +11,12 @@ class TypeSeeder extends Seeder
     public function run(): void
     {
         DB::table('type')->insert([
-            ['name' => 'standard'],
-            ['name' => 'optic set'],
-            ['name' => 'led'],
-            ['name' => 'driver'],
-            ['name' => 'luminaire'],
-            ['name' => 'engine'],
+            ['name' => 'Standard'],
+            ['name' => 'Optic set'],
+            ['name' => 'Led'],
+            ['name' => 'Driver'],
+            ['name' => 'Luminaire'],
+            ['name' => 'Engine'],
         ]);
     }
 }
