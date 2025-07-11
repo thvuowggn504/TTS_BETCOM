@@ -40,7 +40,7 @@ class PartResolver
             $version = Version::create([
                 'revision_id' => $revision->id,
                 'version_code' => '1.0',
-                'name' => $input['name'] . ' - Initial Version',
+                'name' => $input['name'],
                 'code' => $input['code'],
                 'type_id' => $input['type_id'],
                 'status' => 'Draft',
