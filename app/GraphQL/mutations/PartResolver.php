@@ -38,6 +38,7 @@ class PartResolver
                 'code' => $input['code'],
                 'type_id' => $input['type_id'],
                 'status' => 'Draft',
+                'enable_assembly_groups' => $input['enable_assembly_groups'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
