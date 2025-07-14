@@ -12,18 +12,18 @@ return new class extends Migration {
             $table->id();
             $table->string('name', 100);
             $table->string('email', 150)->unique();
-            $table->string('password_hash', 255);
+            $table->string('password', 255);
             $table->enum('role', ['admin', 'editor', 'viewer'])->default('viewer');
             $table->timestamp('created_at')->useCurrent();
         });
 
-        // PASSWORD_RESETS
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->string('email', 150);
-            $table->string('token', 255);
-            $table->timestamp('created_at')->useCurrent();
+        // Tên đúng với Laravel Breeze
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->index();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
-
+        
         // TYPE
         Schema::create('type', function (Blueprint $table) {
             $table->id();
@@ -39,7 +39,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('type_id')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });

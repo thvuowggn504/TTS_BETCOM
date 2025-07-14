@@ -3,15 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use Notifiable;
+
     public $timestamps = false;
 
-    protected $fillable = ['name', 'email', 'password_hash', 'role'];
-
-    // Laravel Auth mặc định, password_hash thành 'password'
-    // accessor/mutator để map
+    protected $fillable = ['name', 'email', 'password', 'role'];
 
     public function parts()
     {
