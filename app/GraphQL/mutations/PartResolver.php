@@ -15,6 +15,12 @@ class PartResolver
         return DB::transaction(function () use ($args) {
             $input = $args['input'];
 
+            // Check unique code
+            if (Part::where('code', $input['code'])->exists())
+                throw new \Exception('This code already exists!');
+            // if (Part::where('name', $input['name'])->exists())
+            //     throw new \Exception('This name already exists!');
+
             $part = Part::create([
                 'name' => $input['name'],
                 'code' => $input['code'],
@@ -68,6 +74,12 @@ class PartResolver
         return DB::transaction(function () use ($args) {
             $input = $args['input'];
             $part = Part::findOrFail($input['id']);
+
+            // Check unique code nếu có part bị trùng code khi edit
+            if (Part::where('code', $input['code'])->where('id', '!=', $part->id)->exists()) 
+                throw new \Exception('This code already exists!');
+            // if (Part::where('name', $input['name'])->where('id', '!=', $part->id)->exists()) 
+            //     throw new \Exception('This name already exists!');
 
             $part->update([
                 'name' => $input['name'] ?? $part->name,
