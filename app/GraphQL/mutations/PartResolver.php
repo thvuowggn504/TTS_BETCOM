@@ -70,6 +70,7 @@ class PartResolver
 
             if ($version->enable_assembly_groups == true) {
                 $group = Group::create([
+                    'assembler_id' => $part->id,
                     'name' => 'Default Group',
                     'version_id' => $version->id,
                     'is_optional' => false
