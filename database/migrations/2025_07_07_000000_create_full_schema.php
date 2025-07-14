@@ -89,11 +89,9 @@ return new class extends Migration {
             $table->string('name', 100);
             $table->string('value', 50);
             $table->unsignedBigInteger('version_id');
-            $table->unsignedBigInteger('type_id')->nullable();
             $table->enum('data_type', ['string', 'int', 'boolean', 'select', 'select-multi'])->default('string');
             $table->enum('type_group', ['custom', 'inherited']);
             
-            $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
             $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
         });
 
