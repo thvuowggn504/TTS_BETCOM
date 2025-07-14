@@ -126,7 +126,7 @@ class PartResolver
             if (!empty($input['additional_fields'])) {
                 foreach ($input['additional_fields'] as $field) {
                     AdditionalField::updateOrCreate(
-                        ['part_id' => $part->id, 'name' => $field['name']],
+                        ['version_id' => $version->id, 'name' => $field['name']],
                         [
                             'value' => $field['value'],
                             'data_type' => strtolower($field['data_type'] ?? 'string')
