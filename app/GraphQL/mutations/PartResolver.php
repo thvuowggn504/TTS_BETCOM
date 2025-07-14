@@ -2,67 +2,88 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Http\Requests\CreatePartRequest;
 use App\Models\Version;
 use App\Models\Revision;
 use App\Models\AdditionalField;
+use App\Models\Group;
 use App\Models\Part;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+
 
 class PartResolver
 {
     public function createPart($_, array $args)
     {
         return DB::transaction(function () use ($args) {
-            $input = $args['input'];
+            // Kiểm tra dữ liệu đầu vào của input
+            $request = new CreatePartRequest();
+            $request->merge($args['input']);
+            $request->setMethod('POST');
+
+            $validator = Validator::make($request->all(), $request->rules());
+
+            if ($validator->fails()) {
+                throw new \Illuminate\Validation\ValidationException($validator);
+            }
+
+            $data = $validator->validated();
 
             // Check unique code
-            if (Part::where('code', $input['code'])->exists())
+            if (Part::where('code', $data['code'])->exists()) {
                 throw new \Exception('This code already exists!');
-            // if (Part::where('name', $input['name'])->exists())
-            //     throw new \Exception('This name already exists!');
+            }
 
             $part = Part::create([
-                'name' => $input['name'],
-                'code' => $input['code'],
-                'type_id' => $input['type_id'],
-                'description' => $input['description'] ?? null,
+                'name' => $data['name'],
+                'code' => $data['code'],
+                'type_id' => $data['type_id'],
+                'description' => $data['description'] ?? null,
+                'created_by' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
-                'created_by' => 1 // User mặc định
             ]);
 
             $revision = Revision::create([
                 'part_id' => $part->id,
                 'revision_code' => '1.0',
+                'created_by' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
-                'created_by' => 1 // User mặc định
             ]);
 
             $version = Version::create([
                 'revision_id' => $revision->id,
                 'version_code' => 'v1.0',
-                'name' => $input['name'],
-                'code' => $input['code'],
-                'type_id' => $input['type_id'],
+                'name' => $data['name'],
+                'code' => $data['code'],
+                'type_id' => $data['type_id'],
                 'status' => 'Draft',
-                'enable_assembly_groups' => $input['enable_assembly_groups'],
+                'enable_assembly_groups' => $data['enable_assembly_groups'],
+                'created_by' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
-                'created_by' => 1 // User mặc định
             ]);
 
             $revision->update(['latest_version' => $version->id]);
 
-            if (!empty($input['additional_fields'])) {
-                foreach ($input['additional_fields'] as $field) {
+            if ($version->enable_assembly_groups == true) {
+                $group = Group::create([
+                    'name' => 'Default Group',
+                    'version_id' => $version->id,
+                    'is_optional' => false
+                ]);
+            }
+
+            if (!empty($data['additional_fields'])) {
+                foreach ($data['additional_fields'] as $field) {
                     AdditionalField::create([
                         'name' => $field['name'],
                         'value' => $field['value'],
                         'version_id' => $version->id,
-                        'type_id' => $field['type_id'] ?? null,
                         'data_type' => strtolower($field['data_type'] ?? 'string'),
-                        'type_group' => 'custom'
+                        'type_group' => strtolower($field['type_group'] ?? 'custom'),
                     ]);
                 }
             }
@@ -70,6 +91,7 @@ class PartResolver
             return $part;
         });
     }
+
 
     public function editPart($_, array $args)
     {
