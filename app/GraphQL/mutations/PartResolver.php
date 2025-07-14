@@ -15,6 +15,12 @@ class PartResolver
         return DB::transaction(function () use ($args) {
             $input = $args['input'];
 
+            // Check unique code
+            if (Part::where('code', $input['code'])->exists())
+                throw new \Exception('This code already exists!');
+            // if (Part::where('name', $input['name'])->exists())
+            //     throw new \Exception('This name already exists!');
+
             $part = Part::create([
                 'name' => $input['name'],
                 'code' => $input['code'],
@@ -22,7 +28,7 @@ class PartResolver
                 'description' => $input['description'] ?? null,
                 'created_at' => now(),
                 'updated_at' => now(),
-                'created_by' => 1
+                'created_by' => 1 // User mặc định
             ]);
 
             $revision = Revision::create([
@@ -30,12 +36,12 @@ class PartResolver
                 'revision_code' => '1.0',
                 'created_at' => now(),
                 'updated_at' => now(),
-                'created_by' => 1
+                'created_by' => 1 // User mặc định
             ]);
 
             $version = Version::create([
                 'revision_id' => $revision->id,
-                'version_code' => '1.0',
+                'version_code' => 'v1.0',
                 'name' => $input['name'],
                 'code' => $input['code'],
                 'type_id' => $input['type_id'],
@@ -43,7 +49,7 @@ class PartResolver
                 'enable_assembly_groups' => $input['enable_assembly_groups'],
                 'created_at' => now(),
                 'updated_at' => now(),
-                'created_by' => 1
+                'created_by' => 1 // User mặc định
             ]);
 
             $revision->update(['latest_version' => $version->id]);
@@ -53,8 +59,10 @@ class PartResolver
                     AdditionalField::create([
                         'name' => $field['name'],
                         'value' => $field['value'],
-                        'part_id' => $part->id,
-                        'data_type' => strtolower($field['data_type'] ?? 'string')
+                        'version_id' => $version->id,
+                        'type_id' => $field['type_id'] ?? null,
+                        'data_type' => strtolower($field['data_type'] ?? 'string'),
+                        'type_group' => 'custom'
                     ]);
                 }
             }
@@ -68,6 +76,12 @@ class PartResolver
         return DB::transaction(function () use ($args) {
             $input = $args['input'];
             $part = Part::findOrFail($input['id']);
+
+            // Check unique code nếu có part bị trùng code khi edit
+            if (Part::where('code', $input['code'])->where('id', '!=', $part->id)->exists())
+                throw new \Exception('This code already exists!');
+            // if (Part::where('name', $input['name'])->where('id', '!=', $part->id)->exists()) 
+            //     throw new \Exception('This name already exists!');
 
             $part->update([
                 'name' => $input['name'] ?? $part->name,
@@ -112,7 +126,7 @@ class PartResolver
             if (!empty($input['additional_fields'])) {
                 foreach ($input['additional_fields'] as $field) {
                     AdditionalField::updateOrCreate(
-                        ['part_id' => $part->id, 'name' => $field['name']],
+                        ['version_id' => $version->id, 'name' => $field['name']],
                         [
                             'value' => $field['value'],
                             'data_type' => strtolower($field['data_type'] ?? 'string')
@@ -153,6 +167,7 @@ class PartResolver
             // 2. Cập nhật tất cả version khác trong revision thành Archived
             Version::where('revision_id', $version->revision_id)
                 ->where('id', '!=', $version->id)
+                //->where('status', 'Published')
                 ->update([
                     'status' => 'Archived',
                     'updated_at' => now(),

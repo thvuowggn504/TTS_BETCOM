@@ -39,25 +39,10 @@ return new class extends Migration {
             $table->unsignedBigInteger('type_id')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
-
-        // ADDITIONAL_FIELDS
-        Schema::create('additional_fields', function (Blueprint $table) {
-            $table->id();
-            $table->string('name', 100)->nullable();
-            $table->string('value', 50)->nullable();
-            $table->unsignedBigInteger('part_id');
-            $table->enum('data_type', ['string', 'int', 'bool'])->default('string');
-
-            $table->foreign('part_id')->references('id')->on('parts')->onDelete('cascade');
-            //$table->unsignedBigInteger('type_id')->nullable();
-
-            //$table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
-        });
-
 
         // REVISIONS (Trước VERSIONS để tránh lỗi FK)
         Schema::create('revisions', function (Blueprint $table) {
@@ -96,6 +81,20 @@ return new class extends Migration {
         // Sau khi versions đã tạo, thêm lại FK vào revisions
         Schema::table('revisions', function (Blueprint $table) {
             $table->foreign('latest_version')->references('id')->on('versions')->onDelete('set null');
+        });
+
+        // ADDITIONAL_FIELDS
+        Schema::create('additional_fields', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 100);
+            $table->string('value', 50);
+            $table->unsignedBigInteger('version_id');
+            $table->unsignedBigInteger('type_id')->nullable();
+            $table->enum('data_type', ['string', 'int', 'boolean', 'select', 'select-multi'])->default('string');
+            $table->enum('type_group', ['custom', 'inherited']);
+            
+            $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
+            $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
         });
 
         // GROUPS
