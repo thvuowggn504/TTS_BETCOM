@@ -35,7 +35,7 @@ class PartResolver
 
             $version = Version::create([
                 'revision_id' => $revision->id,
-                'version_code' => '1.0',
+                'version_code' => 'v1.0',
                 'name' => $input['name'],
                 'code' => $input['code'],
                 'type_id' => $input['type_id'],
@@ -69,46 +69,56 @@ class PartResolver
             $input = $args['input'];
             $part = Part::findOrFail($input['id']);
 
-            $part->update([
-                'name' => $input['name'] ?? $part->name,
-                'code' => $input['code'] ?? $part->code,
-                'description' => $input['description'] ?? $part->description,
-                'type_id' => $input['type_id'] ?? $part->type_id,
-                'updated_at' => now(),
-            ]);
-
+            // Tìm revision đầu tiên
             $revision = Revision::where('part_id', $part->id)
                 ->orderBy('id', 'asc')
                 ->first();
 
             if (!$revision) {
-                $revision = Revision::create([
-                    'part_id' => $part->id,
-                    'revision_code' => 'R1',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                throw new \Exception("Không tìm thấy revision cho part này.");
             }
 
-            $versionCount = $revision->versions()->count();
-            $revisionNumber = intval(str_replace('R', '', $revision->revision_code));
-            $versionCode = 'v' . $revisionNumber . '.' . $versionCount;
+            // Tìm version đang là Draft
+            $draftVersion = $revision->versions()
+                ->where('status', 'Draft')
+                ->orderByDesc('id')
+                ->first();
 
+            if (!$draftVersion) {
+                throw new \Exception("Không tồn tại version ở trạng thái 'Draft'. Vui lòng tạo bản nháp trước khi chỉnh sửa.");
+            }
+
+            // Đếm version trước khi update draft
+            $versionCount = $revision->versions()->count();
+
+            // Archive version Draft cũ
+            $draftVersion->update([
+                'status' => 'Archived',
+                'updated_at' => now(),
+            ]);
+
+            // Tạo version_code mới
+            $major = intval(explode('.', $revision->revision_code)[0]);
+            $versionCode = 'v' . $major . '.' . $versionCount;
+
+            // Tạo version mới ở trạng thái Draft
             $version = Version::create([
                 'revision_id' => $revision->id,
                 'version_code' => $versionCode,
-                'name' => $part->name,
-                'code' => $part->code,
-                'description' => $part->description,
-                'type_id' => $part->type_id,
+                'name' => $input['name'] ?? $part->name,
+                'code' => $input['code'] ?? $part->code,
+                'description' => $input['description'] ?? $part->description,
+                'type_id' => $input['type_id'] ?? $part->type_id,
                 'status' => 'Draft',
-                'enable_assembly_groups' => false,
+                'enable_assembly_groups' => $input['enable_assembly_groups'] ?? false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
+            // Cập nhật latest_version cho revision
             $revision->update(['latest_version' => $version->id]);
 
+            // Cập nhật các trường bổ sung nếu có
             if (!empty($input['additional_fields'])) {
                 foreach ($input['additional_fields'] as $field) {
                     AdditionalField::updateOrCreate(

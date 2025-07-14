@@ -17,7 +17,7 @@ type Revision {
     revision_code: String!
     part: Part! @belongsTo
     versions: [Version!]! @hasMany
-    latest_version: String!
+    latest_version: Version @belongsTo(relation: "latestVersion")
     updated_at: String!
     creator: User
 }
@@ -100,7 +100,9 @@ extend type Mutation {
     createPart(input: CreatePartInput!): Part
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
     updateVersionStatus(id: ID!): Version
-        @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updateVersionStatus")
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@updateVersionStatus"
+        )
 }
 
 # ----------------------------------------------------------------------------------------------
