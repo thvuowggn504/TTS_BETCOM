@@ -2,34 +2,31 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Models\Version;
 use App\Services\PartService;
 
 class PartResolver
 {
-    protected PartService $partService;
-
-    public function __construct(PartService $partService)
-    {
-        $this->partService = $partService;
-    }
+    public function __construct(protected PartService $service) {}
 
     public function createPart($_, array $args)
     {
-        return $this->partService->createPart($args['input']);
+        return $this->service->createPart($args['input']);
     }
 
     public function editPart($_, array $args)
     {
-        return $this->partService->editPart($args['input']);
-    }
-
-    public function resolveAdditionalFields($version, array $args)
-    {
-        return $this->partService->resolveAdditionalFields($version);
+        return $this->service->editPart($args['input']);
     }
 
     public function updateVersionStatus($_, array $args)
     {
-        return $this->partService->updateVersionStatus($args['id']);
+        return $this->service->publishVersion($args['id']);
+    }
+
+    public function resolveAdditionalFields(Version $version, array $args)
+    {
+        $revision = $version->revision;
+        return $revision?->part?->additionalFields ?? [];
     }
 }
