@@ -19,7 +19,7 @@ class PartSeeder extends Seeder
         $userId = DB::table('users')->insertGetId([
             'name' => 'Seeder User',
             'email' => 'seeder@example.com',
-            'password_hash' => bcrypt('password'),
+            'password' => bcrypt('password'),
             'role' => 'admin',
         ]);
 
