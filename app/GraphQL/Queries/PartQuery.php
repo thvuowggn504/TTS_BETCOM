@@ -58,4 +58,21 @@ class PartQuery
             'revisions.versions.additionalFields',
         ])->find($args['id']);
     }
+
+    public function getLatestVersion($_, array $args)
+    {
+        $part = Part::findOrFail($args['partId']);
+
+        // Lấy revision có updated_at mới nhất
+        $latestRevision = $part->revisions()
+            ->orderBy('updated_at', 'desc')
+            ->with('latestVersion.additionalFields')
+            ->first();
+
+        if (!$latestRevision || !$latestRevision->latestVersion) {
+            return null;
+        }
+
+        return $latestRevision->latestVersion;
+    }
 }
