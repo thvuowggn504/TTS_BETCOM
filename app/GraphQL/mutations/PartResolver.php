@@ -174,22 +174,24 @@ class PartResolver
             $input = $args['id'];
             $userId = 2; // Lấy user hiện tại hoặc mặc định là 2
 
-            // 1. Cập nhật version hiện tại thành Published
+            
             $version = Version::findOrFail($input);
+
+            // 1. Cập nhật tất cả version khác trong revision thành Archived
+            Version::where('revision_id', $version->revision_id)
+                ->where('id', '!=', $version->id)
+                ->where('status', '!=', 'Archived')
+                ->update([
+                    'status' => 'Archived',
+                    'updated_at' => now(),
+                ]);
+                
+            // 2. Cập nhật version hiện tại thành Published
             $version->update([
                 'status' => "Published",
                 'updated_at' => now(),
                 'created_by' => $userId,
             ]);
-
-            // 2. Cập nhật tất cả version khác trong revision thành Archived
-            Version::where('revision_id', $version->revision_id)
-                ->where('id', '!=', $version->id)
-                ->where('status', 'Published')
-                ->update([
-                    'status' => 'Archived',
-                    'updated_at' => now(),
-                ]);
 
             // 3. Cập nhật revision
             $revision = Revision::findOrFail($version->revision_id);
