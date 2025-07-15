@@ -39,6 +39,7 @@ type Version {
     name: String!
     code: String!
     based_upon_version_id: Version
+    basedUponVersion: Version @belongsTo(relation: "basedUpon")
     description: String
     type: Type!
     status: String
@@ -107,7 +108,9 @@ extend type Mutation {
     createPart(input: CreatePartInput!): Part
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
     updateVersionStatus(id: ID!): Version
-        @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updateVersionStatus")
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@updateVersionStatus"
+        )
 }
 
 # ----------------------------------------------------------------------------------------------
