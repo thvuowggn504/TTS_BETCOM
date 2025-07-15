@@ -17,7 +17,7 @@ type Revision {
     revision_code: String!
     part: Part! @belongsTo
     versions: [Version!]! @hasMany
-    latest_version: Version @belongsTo(relation: "latestVersion")
+    latest_version: String!
     updated_at: String!
     creator: User
 }
@@ -38,11 +38,11 @@ type Version {
     version_code: String!
     name: String!
     code: String!
-    based_upon_version_id: Version
     description: String
     type: Type!
     status: String
     revision: Revision! @belongsTo
+    based_upon_version: Version @belongsTo(relation: "basedUponVersion")
     additional_fields: [AdditionalField!]!
         @field(
             resolver: "App\\GraphQL\\Mutations\\PartResolver@resolveAdditionalFields"
@@ -56,8 +56,10 @@ type AdditionalField {
     id: ID!
     name: String!
     value: String
-    type_id: ID
+    version_id: INT!
+    type_id: String
     data_type: String
+    type_group: String!
     created_at: DateTime
     updated_at: DateTime
 }
@@ -88,6 +90,11 @@ input AdditionalFieldInput {
     name: String!
     value: String!
     data_type: DataTypeEnum = STRING
+}
+
+enum TypeGroupEnum {
+    CUSTOM
+    INHERITED
 }
 
 enum DataTypeEnum {

@@ -17,11 +17,11 @@ return new class extends Migration {
             $table->timestamp('created_at')->useCurrent();
         });
 
-        // Tên đúng với Laravel Breeze
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        // PASSWORD_RESETS
+        Schema::create('password_resets', function (Blueprint $table) {
+            $table->string('email', 150);
+            $table->string('token', 255);
+            $table->timestamp('created_at')->useCurrent();
         });
 
         // TYPE
@@ -44,12 +44,12 @@ return new class extends Migration {
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
 
-        // REVISIONS (Trước VERSIONS để tránh lỗi FK)
+        // REVISIONS
         Schema::create('revisions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('part_id');
             $table->string('revision_code', 30);
-            $table->unsignedBigInteger('latest_version')->nullable(); // FK tới versions sẽ thêm sau
+            $table->unsignedBigInteger('latest_version')->nullable(); // FK bổ sung sau
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
 
@@ -78,7 +78,7 @@ return new class extends Migration {
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
 
-        // Sau khi versions đã tạo, thêm lại FK vào revisions
+        // Bổ sung FK latest_version cho revisions
         Schema::table('revisions', function (Blueprint $table) {
             $table->foreign('latest_version')->references('id')->on('versions')->onDelete('set null');
         });
@@ -89,11 +89,9 @@ return new class extends Migration {
             $table->string('name', 100);
             $table->string('value', 50);
             $table->unsignedBigInteger('version_id');
-            $table->unsignedBigInteger('type_id')->nullable();
             $table->enum('data_type', ['string', 'int', 'boolean', 'select', 'select-multi'])->default('string');
             $table->enum('type_group', ['custom', 'inherited']);
 
-            $table->foreign('type_id')->references('id')->on('type')->onDelete('set null');
             $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
         });
 
@@ -138,15 +136,14 @@ return new class extends Migration {
         Schema::dropIfExists('group_parts');
         Schema::dropIfExists('groups');
 
-        // Xoá FK trước khi xoá bảng chứa FK
         Schema::table('revisions', function (Blueprint $table) {
             $table->dropForeign(['latest_version']);
         });
 
+        Schema::dropIfExists('additional_fields');
         Schema::dropIfExists('versions');
         Schema::dropIfExists('revisions');
         Schema::dropIfExists('parts');
-        Schema::dropIfExists('additional_fields');
         Schema::dropIfExists('type');
         Schema::dropIfExists('password_resets');
         Schema::dropIfExists('users');
