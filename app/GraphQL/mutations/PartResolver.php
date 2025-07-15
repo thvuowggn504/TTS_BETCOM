@@ -218,6 +218,10 @@ class PartResolver
 
             // 4. Cập nhật part liên quan
             Part::where('id', $revision->part_id)->update([
+                'name' => $version->name,
+                'description' => $version->description,
+                'code' => $version->code,
+                'type_id' => $version->type_id,
                 'updated_at' => now(),
                 'created_by' => $userId,
             ]);
