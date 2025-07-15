@@ -164,14 +164,9 @@ class PartResolver
 
     public function resolveAdditionalFields(Version $version, array $args)
     {
-        $revision = $version->revision;
-        if (!$revision) return [];
-
-        $part = $revision->part;
-        if (!$part) return [];
-
-        return $part->additionalFields;
+        return $version->additionalFields ?? [];
     }
+
 
     public function updateVersionStatus($_, array $args)
     {
