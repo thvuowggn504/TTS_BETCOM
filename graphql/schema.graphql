@@ -17,7 +17,7 @@ type Revision {
     revision_code: String!
     part: Part! @belongsTo
     versions: [Version!]! @hasMany
-    latest_version: String!
+    latestVersion: Version!
     updated_at: String!
     creator: User
 }
