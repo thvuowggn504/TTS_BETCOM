@@ -38,6 +38,8 @@ type Version {
     version_code: String!
     name: String!
     code: String!
+    based_upon_version_id: Version
+    basedUponVersion: Version @belongsTo(relation: "basedUpon")
     description: String
     type: Type!
     status: String
