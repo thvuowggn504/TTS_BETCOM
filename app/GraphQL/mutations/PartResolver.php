@@ -180,12 +180,12 @@ class PartResolver
             // 1. Cập nhật tất cả version khác trong revision thành Archived
             Version::where('revision_id', $version->revision_id)
                 ->where('id', '!=', $version->id)
-                ->where('status', '!=', 'Archived')
+                ->where('status', 'Published')
                 ->update([
                     'status' => 'Archived',
                     'updated_at' => now(),
                 ]);
-                
+
             // 2. Cập nhật version hiện tại thành Published
             $version->update([
                 'status' => "Published",
