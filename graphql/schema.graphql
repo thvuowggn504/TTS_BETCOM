@@ -39,10 +39,12 @@ type Version {
     name: String!
     code: String!
     based_upon_version_id: Version
+    basedUponVersion: Version @belongsTo(relation: "basedUpon")
     description: String
     type: Type!
     status: String
     revision: Revision! @belongsTo
+    based_upon_version: Version @belongsTo(relation: "basedUponVersion")
     additional_fields: [AdditionalField!]!
         @field(
             resolver: "App\\GraphQL\\Mutations\\PartResolver@resolveAdditionalFields"
