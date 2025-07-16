@@ -32,12 +32,6 @@ class PartResolver
         return $this->partService->getAdditionalFields($version);
     }
 
-    // Mutation cập nhật trạng thái của version (ví dụ: từ Draft -> Published)
-    public function updateVersionStatus($_, array $args)
-    {
-        return $this->partService->updateVersionStatus($args['id']);
-    }
-
     // Resolve lấy version hiển thị của một part (ưu tiên bản Published)
     public function visibleVersion($part, array $args)
     {
