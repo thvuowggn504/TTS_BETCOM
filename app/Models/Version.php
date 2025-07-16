@@ -28,7 +28,7 @@ class Version extends Model
         return $this->belongsTo(Revision::class);
     }
 
-    public function basedUponVersion()
+    public function basedUpon()
     {
         return $this->belongsTo(Version::class, 'based_upon_version_id');
     }

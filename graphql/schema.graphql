@@ -240,12 +240,13 @@ input UpdateCodebuilderRuleInput {
     rule: JSON! @rules(apply: ["required", "array"])
 }
 
-input EditPartInput {
+input UpdatePartInput {
     id: ID!
     name: String
     code: String
     description: String
     type_id: Int
+    version_id: ID
     additional_fields: [AdditionalFieldInput!]
 }
 
@@ -253,9 +254,10 @@ input AdditionalFieldInput {
     name: String!
     value: String
     data_type: String
+    type_group: String
 }
 
 extend type Mutation {
-    editPart(input: EditPartInput!): Version
-        @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@editPart")
+    updatePart(input: UpdatePartInput!): Version
+        @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updatePart")
 }
