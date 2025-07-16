@@ -138,7 +138,7 @@ class PartResolver
             // Tính version_code mới
             list($revMajor, $revMinor) = explode('.', $revision->revision_code);
             $versionCount = $revision->versions()->count();
-            $versionCode = 'v' . $revMajor . '.' . $versionCount;
+            $versionCode = $revMajor . '.' . $versionCount;
 
             // Tạo version mới
             $newVersion = Version::create([
