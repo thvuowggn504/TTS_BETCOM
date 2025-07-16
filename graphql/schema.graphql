@@ -112,10 +112,12 @@ enum DataTypeEnum {
 extend type Mutation {
     createPart(input: CreatePartInput!): Part
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
+
     updateVersionStatus(id: ID!): Version
-        @field(
-            resolver: "App\\GraphQL\\Mutations\\VersionResolver@updateVersionStatus"
-        )
+        @field(resolver: "App\\GraphQL\\Mutations\\VersionResolver@updateVersionStatus")
+
+    createRevision(id: ID!): Revision
+        @field(resolver: "App\\GraphQL\\Mutations\\RevisionResolver@createRevision")
 }
 
 # ----------------------------------------------------------------------------------------------

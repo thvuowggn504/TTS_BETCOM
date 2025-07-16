@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Revision extends Model
 {
     public $timestamps = false;
+    protected $table = 'revisions';
 
     protected $fillable = [
         'part_id',
