@@ -38,7 +38,7 @@ class PartService
 
             // Kiểm tra mã code đã tồn tại hay chưa
             if ($this->partRepository->partExistsByCode($data['code'])) {
-                throw new \Exception('Mã code đã tồn tại!');
+                throw new \Exception('Code already exists!');
             }
 
             // Tạo Part mới
