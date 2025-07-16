@@ -10,6 +10,7 @@ type Part {
     created_at: String!
     updated_at: String!
     creator: User
+    visibleVersion: Version
 }
 
 type Revision {
