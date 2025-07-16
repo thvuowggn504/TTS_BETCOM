@@ -198,8 +198,11 @@ class PartService
 
             $version = $this->partRepository->getVersion($versionId);
             if (!$version) {
-                throw new \Exception('Không tìm thấy version.');
+                throw new \Exception('Version not found.');
             }
+
+                        // Archive các version khác thuộc cùng revision
+            $this->partRepository->archiveOtherVersions($version->revision_id, $version->id);
 
             // Cập nhật trạng thái version thành Published
             $this->partRepository->updateVersion($version->id, [
@@ -208,8 +211,7 @@ class PartService
                 'created_by' => $userId,
             ]);
 
-            // Archive các version khác thuộc cùng revision
-            $this->partRepository->archiveOtherVersions($version->revision_id, $version->id);
+
 
             // Cập nhật lại revision với version mới nhất
             $this->partRepository->updateRevision($version->revision_id, [
