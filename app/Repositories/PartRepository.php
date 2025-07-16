@@ -97,6 +97,7 @@ class PartRepository
     {
         Version::where('revision_id', $revisionId)
             ->where('id', '!=', $versionId)
+            ->where('status', 'Published') // chỉ archive các version đang Draft hoặc Published
             ->update([
                 'status' => 'Archived', // cập nhật trạng thái
                 'updated_at' => now(),  // cập nhật thời gian sửa đổi

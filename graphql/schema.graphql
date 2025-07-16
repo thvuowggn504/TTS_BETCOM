@@ -114,7 +114,7 @@ extend type Mutation {
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
     updateVersionStatus(id: ID!): Version
         @field(
-            resolver: "App\\GraphQL\\Mutations\\PartResolver@updateVersionStatus"
+            resolver: "App\\GraphQL\\Mutations\\VersionResolver@updateVersionStatus"
         )
 }
 
