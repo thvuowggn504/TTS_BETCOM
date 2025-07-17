@@ -132,7 +132,10 @@ class PartService
                 }
             }
 
-            // Chuyển version hiện tại thành Archived
+            // Nếu có version Draft khác trong cùng revision => chuyển nó thành Archived
+            $this->partRepository->archiveDraftVersionIfExists($revision->id, $latestVersion->id);
+
+            // Chuyển version hiện tại (đang sửa) thành Archived
             $this->partRepository->updateVersion($latestVersion->id, [
                 'status' => 'Archived',
                 'updated_at' => now(),
