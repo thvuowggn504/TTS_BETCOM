@@ -114,10 +114,14 @@ extend type Mutation {
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@createPart")
 
     updateVersionStatus(id: ID!): Version
-        @field(resolver: "App\\GraphQL\\Mutations\\VersionResolver@updateVersionStatus")
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\VersionResolver@updateVersionStatus"
+        )
 
     createRevision(id: ID!): Revision
-        @field(resolver: "App\\GraphQL\\Mutations\\RevisionResolver@createRevision")
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\RevisionResolver@createRevision"
+        )
 }
 
 # ----------------------------------------------------------------------------------------------
@@ -263,4 +267,11 @@ input AdditionalFieldInput {
 extend type Mutation {
     updatePart(input: UpdatePartInput!): Version
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updatePart")
+}
+
+type Mutation {
+    deleteDraftVersion(version_id: ID!): Boolean
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@deleteDraftVersion"
+        )
 }
