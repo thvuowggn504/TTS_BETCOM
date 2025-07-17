@@ -42,7 +42,6 @@ class VersionService
 
             // Cập nhật lại revision với version mới nhất
             $this->partRepository->updateRevision($version->revision_id, [
-                'latest_version' => $version->id,
                 'updated_at'     => now(),
                 'created_by'     => $userId,
             ]);
