@@ -111,37 +111,42 @@ class PartService
     public function updatePart(array $input)
     {
         return DB::transaction(function () use ($input) {
-            // Tải version kèm revision và part liên quan
             $latestVersion = $this->partRepository->getVersionWithRelations($input['version_id']);
+
             if (!$latestVersion || !$latestVersion->revision || !$latestVersion->revision->part) {
-                throw new \Exception('Không tìm thấy revision hoặc part.');
+                throw new \Exception('Không tìm thấy version, revision hoặc part.');
             }
 
             $revision = $latestVersion->revision;
             $part = $revision->part;
 
-            // Kiểm tra version có thuộc đúng part không
-            if ((int) $part->id !== (int) $input['id']) {
-                throw new \Exception("Version không thuộc part đã chỉ định. Found part_id={$part->id}, expected={$input['id']}.");
-            }
-
-            // Chỉ cho phép chỉnh sửa khi version ở trạng thái Draft hoặc Archived
+            // Kiểm tra trạng thái version hợp lệ
             if (!in_array($latestVersion->status, ['Draft', 'Archived'])) {
                 throw new \Exception('Chỉ được chỉnh sửa version ở trạng thái Draft hoặc Archived.');
             }
 
             // Kiểm tra trùng mã code nếu có thay đổi
-            if (!empty($input['code']) && $input['code'] !== $part->code) {
+            if (!empty($input['code']) && $input['code'] !== $latestVersion->code) {
                 if ($this->partRepository->partExistsByCode($input['code'], $part->id)) {
                     throw new \Exception('Mã code đã tồn tại!');
                 }
             }
 
-            // Tạo version mới dựa trên version đang chỉnh sửa
-            list($revMajor, $revMinor) = explode('.', $revision->revision_code);
+            // Nếu có version Draft khác trong cùng revision => chuyển nó thành Archived
+            $this->partRepository->archiveDraftVersionIfExists($revision->id, $latestVersion->id);
+
+            // Chuyển version hiện tại (đang sửa) thành Archived
+            $this->partRepository->updateVersion($latestVersion->id, [
+                'status' => 'Archived',
+                'updated_at' => now(),
+            ]);
+
+            // Tạo version_code mới: ví dụ "1.2"
+            [$revMajor] = explode('.', $revision->revision_code);
             $versionCount = $this->partRepository->countVersionsByRevision($revision->id);
             $versionCode = $revMajor . '.' . $versionCount;
 
+            // Tạo version mới với trạng thái Draft
             $newVersion = $this->partRepository->createVersion([
                 'revision_id'            => $revision->id,
                 'version_code'           => $versionCode,
@@ -157,13 +162,13 @@ class PartService
                 'updated_at'             => now(),
             ]);
 
-            // Cập nhật latest_version của revision
+            // Cập nhật latest_version cho revision
             $this->partRepository->updateRevision($revision->id, [
                 'latest_version' => $newVersion->id,
-                'updated_at'     => now(),
+                'updated_at' => now(),
             ]);
 
-            // Tạo các trường mở rộng mới nếu có
+            // Ghi additional_fields nếu có
             if (!empty($input['additional_fields'])) {
                 foreach ($input['additional_fields'] as $field) {
                     $this->partRepository->createAdditionalField([
@@ -201,7 +206,7 @@ class PartService
                 throw new \Exception('Version not found.');
             }
 
-                        // Archive các version khác thuộc cùng revision
+            // Archive các version khác thuộc cùng revision
             $this->partRepository->archiveOtherVersions($version->revision_id, $version->id);
 
             // Cập nhật trạng thái version thành Published

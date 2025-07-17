@@ -132,4 +132,16 @@ class PartRepository
         // Nếu chưa có bản published, trả về bản Draft (nếu có)
         return $latestRevision->versions->firstWhere('status', 'Draft');
     }
+
+    public function archiveDraftVersionIfExists($revisionId, $excludeVersionId)
+    {
+        Version::where('revision_id', $revisionId)
+            ->where('id', '!=', $excludeVersionId)
+            ->where('status', 'Draft')
+            ->update([
+                'status' => 'Archived',
+                'updated_at' => now(),
+            ]);
+    }
 }
+
