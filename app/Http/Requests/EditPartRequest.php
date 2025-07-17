@@ -22,7 +22,6 @@ class EditPartRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => 'required|integer|exists:parts,id',
             'version_id' => 'required|integer|exists:versions,id', 
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:255',
