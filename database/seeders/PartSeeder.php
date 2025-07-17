@@ -24,6 +24,7 @@ class PartSeeder extends Seeder
         ]);
 
         $versionCounter = 1;
+        $now = now(); // Carbon instance
 
         for ($i = 1; $i <= 5; $i++) {
 
@@ -44,13 +45,18 @@ class PartSeeder extends Seeder
             $revisionCounter = 1;
 
             for ($r = 1; $r <= $revisionCount; $r++) {
+                
                 $revisionCode = $revisionCounter . '.0';
+
+                // Gán thời gian rồi tăng 1 giây
+                $revisionTime = $now->copy()->addSeconds($r - 1);
+
                 $revisionId = DB::table('revisions')->insertGetId([
                     'part_id' => $partId,
                     'revision_code' => $revisionCode,
                     'created_by' => $userId,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s')
+                    'created_at' => $revisionTime,
+                    'updated_at' => $revisionTime
                 ]);
 
                 // Tạo 1–4 Versions cho mỗi Revision
@@ -70,6 +76,9 @@ class PartSeeder extends Seeder
                         ]);
                     }
 
+                    // Tăng thời gian mỗi lần thêm version
+                    $versionTime = $revisionTime->copy()->addSeconds($v);
+
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
                         'version_code' => "1.$v",
@@ -81,13 +90,14 @@ class PartSeeder extends Seeder
                         'status' => $status,
                         'enable_assembly_groups' => rand(0, 1),
                         'created_by' => $userId,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s')
+                        'created_at' => $versionTime,
+                        'updated_at' => $versionTime
                     ]);
 
                     $versionCounter++;
                     $latestVersionId = $versionId;
                 }
+
                 $revisionCounter++;
 
                 // Cập nhật latest_version cho revision

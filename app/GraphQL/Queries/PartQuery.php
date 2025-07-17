@@ -4,10 +4,16 @@ namespace App\GraphQL\Queries;
 
 use App\Models\Version;
 use App\Models\Part;
+use App\Services\PartService;
 
 
 class PartQuery
 {
+    protected $partService;
+    public function __construct(PartService $partService)
+    {
+        $this->partService = $partService;
+    }
     public function getVersion($_, array $args)
     {
         return Version::whereHas('revision', function ($q) use ($args) {
@@ -74,5 +80,10 @@ class PartQuery
         }
 
         return $latestRevision->latestVersion;
+    }
+
+    public function getPublishedParts($_, array $args)
+    {
+        return $this->partService->getPublishedParts();
     }
 }

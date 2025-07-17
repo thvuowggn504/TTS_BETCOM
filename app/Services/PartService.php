@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\CreatePartRequest;
 use App\Http\Requests\EditPartRequest;
+use App\Models\Part;
 use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
@@ -307,6 +308,35 @@ class PartService
             }
 
             return $deleted;
-        }); 
+        });
+    }
+
+    public function getPublishedParts()
+    {
+        return Part::with(['revisions' => function ($query) {
+            $query->orderByDesc('updated_at')->limit(1); // chỉ lấy revision mới nhất
+        }, 'revisions.versions' => function ($query) {
+            $query->orderByDesc('created_at'); // lấy version mới nhất trước
+        }])->get()->filter(function ($part) {
+            $revision = $part->revisions->first();
+            if (!$revision) {
+                return false; // Không có revision nào → loại
+            }
+
+            // Kiểm tra revision có version nào Published không
+            return $revision->versions->contains(function ($version) {
+                return $version->status === 'Published';
+            });
+        })->map(function ($part) {
+            $revision = $part->revisions->first();
+            $version = $revision->versions->firstWhere('status', 'Published')
+                ?? $revision->versions->where('status', 'Archived')->sortByDesc('created_at')->first()
+                ?? $revision->versions->firstWhere('status', 'Draft');
+
+            $part->selected_version = $version;
+            $part->additional_fields = $version?->additionalFields ?? [];
+            unset($part->revisions);
+            return $part;
+        })->values(); 
     }
 }

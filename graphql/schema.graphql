@@ -81,6 +81,8 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartById")
     parts: [Part!]
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
+    publishedPart: [Part!]!
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPublishedParts")
 }
 
 input CreatePartInput {
@@ -124,84 +126,44 @@ extend type Mutation {
         )
 }
 
-# ----------------------------------------------------------------------------------------------
-
-type GroupPart {
-    id: ID!
-    group_id: ID!
-    part_id: ID!
-    quantity: Int!
-    group: Group @belongsTo
-    part: Part @belongsTo
-    created_at: DateTime
-    updated_at: DateTime
-}
-
-type Query {
-    groupParts: [GroupPart!]! @all
-    groupPart(id: ID!): GroupPart @find
-}
-
-type Mutation {
-    createGroupPart(input: CreateGroupPartInput!): GroupPart
-        @field(resolver: "App\\GraphQL\\Mutations\\GroupPartResolver@create")
-
-    updateGroupPart(id: ID!, input: UpdateGroupPartInput!): GroupPart
-        @update(model: "App\\Models\\GroupPart")
-
-    deleteGroupPart(id: ID!): Boolean @delete(model: "App\\Models\\GroupPart")
-}
-
-input CreateGroupPartInput {
-    group_id: ID! @rules(apply: ["required", "exists:groups,id"])
-    part_id: ID! @rules(apply: ["required", "exists:parts,id"])
-    quantity: Int! @rules(apply: ["required", "integer", "min:1"])
-}
-
-input UpdateGroupPartInput {
-    quantity: Int! @rules(apply: ["required", "integer", "min:1"])
-}
-
 type Group {
     id: ID!
     assembler_id: ID!
     name: String!
     version_id: ID
     is_optional: Boolean
-    created_at: DateTime
-    updated_at: DateTime
 
     assembler: Part @belongsTo
     version: Version @belongsTo
-    groupParts: [GroupPart!]! @hasMany
+    groupParts: [GroupPart!] @hasMany
+}
+
+type GroupPart {
+    id: ID!
+    group_id: ID!
+    part_id: ID!
+    version_id: ID!
+
+    group: Group @belongsTo
+    part: Part @belongsTo
 }
 
 extend type Query {
-    groups: [Group!]! @all
-    group(id: ID!): Group @find
+    groups(partId: ID!): [Group!]
+        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByPartId")
+}
+
+input CreateGroupPartInput {
+    group_id: ID!
+    part_id: ID!
 }
 
 extend type Mutation {
-    createGroup(input: CreateGroupInput!): Group
-        @create(model: "App\\Models\\Group")
-
-    updateGroup(id: ID!, input: UpdateGroupInput!): Group
-        @update(model: "App\\Models\\Group")
-
-    deleteGroup(id: ID!): Boolean @delete(model: "App\\Models\\Group")
+    addPartToGroup(input: CreateGroupPartInput!): GroupPart
+        @field(resolver: "App\\GraphQL\\Mutations\\GroupPartResolver@create")
 }
 
-input CreateGroupInput {
-    assembler_id: ID! @rules(apply: ["required", "exists:parts,id"])
-    name: String! @rules(apply: ["required", "string", "max:100"])
-    version_id: ID @rules(apply: ["nullable", "exists:versions,id"])
-    is_optional: Boolean
-}
-
-input UpdateGroupInput {
-    name: String @rules(apply: ["string", "max:100"])
-    is_optional: Boolean
-}
+# ----------------------------------------------------------------------------------------------
 
 scalar JSON @scalar(class: "MLL\\GraphQLScalars\\JSON")
 
