@@ -23,13 +23,13 @@ return new class extends Migration {
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
-        
+
         // TYPE
         Schema::create('type', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
         });
-        
+
         // PARTS
         Schema::create('parts', function (Blueprint $table) {
             $table->id();
@@ -112,7 +112,9 @@ return new class extends Migration {
             $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('part_id');
             $table->integer('quantity')->default(1);
+            $table->unsignedBigInteger('version_id')->nullable();
 
+            $table->foreign('version_id')->references('id')->on('versions')->onDelete('set null');
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
             $table->foreign('part_id')->references('id')->on('parts')->onDelete('cascade');
             $table->unique(['group_id', 'part_id']);
