@@ -8,14 +8,17 @@ use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\VersionRepository;
 
 class PartService
 {
     protected $partRepository;
+    protected $versionRepository;
 
-    public function __construct(PartRepository $partRepository)
+    public function __construct(PartRepository $partRepository, VersionRepository $versionRepository)
     {
         $this->partRepository = $partRepository;
+        $this->versionRepository = $versionRepository;
     }
 
     /**
@@ -112,7 +115,7 @@ class PartService
     public function updatePart(array $input)
     {
         return DB::transaction(function () use ($input) {
-             // Tạo request để thực hiện validate giống như controller
+            // Tạo request để thực hiện validate giống như controller
             $request = new EditPartRequest();
             $request->merge($input);
             $request->setMethod('POST');
@@ -259,5 +262,51 @@ class PartService
     public function getVisibleVersion($partId)
     {
         return $this->partRepository->getVisibleVersion($partId);
+    }
+
+    public function deleteDraftVersion($versionId): bool
+    {
+        return DB::transaction(function () use ($versionId) {
+            $version = $this->versionRepository->findById($versionId);
+
+            if (!$version) {
+                throw new \Exception('Không tìm thấy version.');
+            }
+
+            if ($version->status !== 'Draft') {
+                throw new \Exception('Chỉ được xoá version ở trạng thái Draft.');
+            }
+
+            $revisionId = $version->revision_id;
+            $versionCount = $this->versionRepository->countVersionsByRevision($revisionId);
+
+            if ($versionCount <= 1) {
+                throw new \Exception('Không thể xoá version duy nhất trong revision.');
+            }
+
+            // Nếu version hiện tại là latest, ta cần tính toán lại latestVersion sau khi xóa
+            $revision = $this->versionRepository->findRevisionById($revisionId);
+            $isLatest = $revision->latest_version == $version->id;
+
+            // Xoá additional_fields
+            $this->versionRepository->deleteAdditionalFields($version->id);
+
+            // Xoá version
+            $deleted = $this->versionRepository->deleteVersion($version->id);
+
+            // Nếu là latest thì cập nhật lại
+            if ($isLatest) {
+                $newLatest = $this->versionRepository->getLatestVersionByRevision($revisionId);
+
+                if ($newLatest) {
+                    $this->versionRepository->updateRevision($revisionId, [
+                        'latest_version' => $newLatest->id,
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            return $deleted;
+        }); 
     }
 }
