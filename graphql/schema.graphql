@@ -149,8 +149,8 @@ type GroupPart {
 }
 
 extend type Query {
-    groups(partId: ID!): [Group!]
-        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByPartId")
+    groups(versionId: ID!): [Group!]
+        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId")
 }
 
 input CreateGroupPartInput {
