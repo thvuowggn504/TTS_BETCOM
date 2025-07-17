@@ -9,10 +9,10 @@ use App\Models\GroupPart;
 
 class GroupQuery
 {
-    public function getGroupsByPartId($_, array $args)
+    public function getGroupsByVersionId($_, array $args)
     {
-        return Group::whereHas('assembler', function ($query) use ($args) {
-            $query->where('assembler_id', $args['partId']);
+        return Group::whereHas('version', function ($query) use ($args) {
+            $query->where('version_id', $args['versionId']);
         })->get();
     }
 }
