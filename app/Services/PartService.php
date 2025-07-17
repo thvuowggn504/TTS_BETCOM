@@ -127,7 +127,7 @@ class PartService
             $latestVersion = $this->partRepository->getVersionWithRelations($data['version_id']);
 
             if (!$latestVersion || !$latestVersion->revision || !$latestVersion->revision->part) {
-                throw new \Exception('Không tìm thấy version, revision hoặc part.');
+                throw new \Exception('VErsion or its related Part, Revison not found.');
             }
 
             $revision = $latestVersion->revision;
@@ -135,13 +135,13 @@ class PartService
 
             // Kiểm tra trạng thái version hợp lệ
             if (!in_array($latestVersion->status, ['Draft', 'Archived'])) {
-                throw new \Exception('Chỉ được chỉnh sửa version ở trạng thái Draft hoặc Archived.');
+                throw new \Exception('Cannot update version with status: ' . $latestVersion->status);
             }
 
             // Kiểm tra trùng mã code nếu có thay đổi
             if (!empty($data['code']) && $data['code'] !== $latestVersion->code) {
                 if ($this->partRepository->partExistsByCode($data['code'], $part->id)) {
-                    throw new \Exception('Mã code đã tồn tại!');
+                    throw new \Exception('Code already exists!');
                 }
             }
 
