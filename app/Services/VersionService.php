@@ -60,4 +60,5 @@ class VersionService
             return $this->partRepository->getVersion($version->id);
         });
     }
+
 }
