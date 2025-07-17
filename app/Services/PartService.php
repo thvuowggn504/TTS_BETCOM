@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\CreatePartRequest;
+use App\Http\Requests\EditPartRequest;
 use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ class PartService
 
             // Kiểm tra mã code đã tồn tại hay chưa
             if ($this->partRepository->partExistsByCode($data['code'])) {
-                throw new \Exception('Mã code đã tồn tại!');
+                throw new \Exception('Code already exists!');
             }
 
             // Tạo Part mới
@@ -111,10 +112,22 @@ class PartService
     public function updatePart(array $input)
     {
         return DB::transaction(function () use ($input) {
-            $latestVersion = $this->partRepository->getVersionWithRelations($input['version_id']);
+             // Tạo request để thực hiện validate giống như controller
+            $request = new EditPartRequest();
+            $request->merge($input);
+            $request->setMethod('POST');
+
+            // Thực hiện validate dữ liệu đầu vào
+            $validator = Validator::make($request->all(), $request->rules());
+            if ($validator->fails()) {
+                throw new \Illuminate\Validation\ValidationException($validator);
+            }
+
+            $data = $validator->validated();
+            $latestVersion = $this->partRepository->getVersionWithRelations($data['version_id']);
 
             if (!$latestVersion || !$latestVersion->revision || !$latestVersion->revision->part) {
-                throw new \Exception('Không tìm thấy version, revision hoặc part.');
+                throw new \Exception('VErsion or its related Part, Revison not found.');
             }
 
             $revision = $latestVersion->revision;
@@ -122,13 +135,13 @@ class PartService
 
             // Kiểm tra trạng thái version hợp lệ
             if (!in_array($latestVersion->status, ['Draft', 'Archived'])) {
-                throw new \Exception('Chỉ được chỉnh sửa version ở trạng thái Draft hoặc Archived.');
+                throw new \Exception('Cannot update version with status: ' . $latestVersion->status);
             }
 
             // Kiểm tra trùng mã code nếu có thay đổi
-            if (!empty($input['code']) && $input['code'] !== $latestVersion->code) {
-                if ($this->partRepository->partExistsByCode($input['code'], $part->id)) {
-                    throw new \Exception('Mã code đã tồn tại!');
+            if (!empty($data['code']) && $data['code'] !== $latestVersion->code) {
+                if ($this->partRepository->partExistsByCode($data['code'], $part->id)) {
+                    throw new \Exception('Code already exists!');
                 }
             }
 
@@ -150,10 +163,10 @@ class PartService
             $newVersion = $this->partRepository->createVersion([
                 'revision_id'            => $revision->id,
                 'version_code'           => $versionCode,
-                'name'                   => $input['name'] ?? $latestVersion->name,
-                'code'                   => $input['code'] ?? $latestVersion->code,
-                'description'            => $input['description'] ?? $latestVersion->description,
-                'type_id'                => $input['type_id'] ?? $latestVersion->type_id,
+                'name'                   => $data['name'] ?? $latestVersion->name,
+                'code'                   => $data['code'] ?? $latestVersion->code,
+                'description'            => $data['description'] ?? $latestVersion->description,
+                'type_id'                => $data['type_id'] ?? $latestVersion->type_id,
                 'status'                 => 'Draft',
                 'enable_assembly_groups' => $latestVersion->enable_assembly_groups,
                 'based_upon_version_id'  => $latestVersion->id,
@@ -169,8 +182,8 @@ class PartService
             ]);
 
             // Ghi additional_fields nếu có
-            if (!empty($input['additional_fields'])) {
-                foreach ($input['additional_fields'] as $field) {
+            if (!empty($data['additional_fields'])) {
+                foreach ($data['additional_fields'] as $field) {
                     $this->partRepository->createAdditionalField([
                         'name'        => $field['name'],
                         'value'       => $field['value'],
