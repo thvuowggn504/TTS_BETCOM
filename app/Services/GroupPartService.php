@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Http\Requests\CreateGroupPartRequest;
 use App\Http\Requests\CreatePartRequest;
 use App\Http\Requests\EditPartRequest;
+use App\Models\Group;
+use App\Models\Part;
 use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +44,12 @@ class GroupPartService
                 }
 
                 $data = $validator->validated();
+
+                $group = Group::find($data['group_id']);
+                if ($group && $group->part_id == $data['part_id']) {
+                    // Nếu part hiện tại chính là part cha, không thêm
+                    continue;
+                }
 
                 // Kiểm tra trùng (group_id + part_id)
                 if ($this->groupPartRepository->exists($data['group_id'], $data['part_id'])) {
