@@ -70,7 +70,7 @@ type AdditionalField {
 extend type Query {
     hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
 
-    getVersion(partId: ID!, revisionId: ID!, versionCode: String!): Version
+    getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
