@@ -72,6 +72,7 @@ class PartService
                 'version_code' => 'v1.0',
                 'name' => $data['name'],
                 'code' => $data['code'],
+                'description' => $data['description'] ?? null,
                 'type_id' => $data['type_id'],
                 'status' => 'Draft',
                 'enable_assembly_groups' => $data['enable_assembly_groups'],
