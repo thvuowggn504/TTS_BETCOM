@@ -159,7 +159,7 @@ input CreateGroupPartInput {
 }
 
 extend type Mutation {
-    addPartToGroup(input: CreateGroupPartInput!): GroupPart
+    addPartToGroup(input: [CreateGroupPartInput!]): [GroupPart!]!
         @field(resolver: "App\\GraphQL\\Mutations\\GroupPartResolver@create")
 }
 
