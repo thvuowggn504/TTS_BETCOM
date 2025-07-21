@@ -16,11 +16,9 @@ class PartQuery
     }
     public function getVersion($_, array $args)
     {
-        return Version::whereHas('revision', function ($q) use ($args) {
-            $q->where('part_id', $args['partId'])
-                ->where('id', $args['revisionId']);
-        })
-            ->where('version_code', $args['versionCode'])
+        // Lấy version theo ID
+        return Version::with(['additionalFields'])
+            ->where('id', $args['id'])
             ->first();
     }
 
@@ -85,5 +83,22 @@ class PartQuery
     public function getPublishedParts($_, array $args)
     {
         return $this->partService->getPublishedParts();
+    }
+
+    public function searchParts($_, array $args)
+    {
+        $keyword = $args['keyword'] ?? '';
+        return $this->partService->searchPart($keyword);
+    }
+
+    public function getPartsByType($_, array $args)
+    {
+        $typeId = $args['typeId'] ?? null;
+
+        if (!$typeId) {
+            return null;
+        }
+
+        return $this->partService->searchByType($typeId);
     }
 }

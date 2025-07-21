@@ -47,6 +47,12 @@ class GroupPartRepository
             return $latestVersion->id;
         }
         return throw new \Exception('No published version found for part ID ' . $partId);
-    
+    }
+
+    public function exists($groupId, $partId)
+    {
+        return GroupPart::where('group_id', $groupId)
+            ->where('part_id', $partId)
+            ->exists();
     }
 }

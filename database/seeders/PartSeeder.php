@@ -45,7 +45,7 @@ class PartSeeder extends Seeder
             $revisionCounter = 1;
 
             for ($r = 1; $r <= $revisionCount; $r++) {
-                
+
                 $revisionCode = $revisionCounter . '.0';
 
                 // Gán thời gian rồi tăng 1 giây
@@ -96,6 +96,15 @@ class PartSeeder extends Seeder
 
                     $versionCounter++;
                     $latestVersionId = $versionId;
+
+                    // Nếu type là luminaire, tạo 1 group
+                    if ($type_id == 5) {
+                        DB::table('groups')->insert([
+                            'name' => "Default Group",
+                            'assembler_id' => $partId,
+                            'version_id' => $versionId,
+                        ]);
+                    }
                 }
 
                 $revisionCounter++;
