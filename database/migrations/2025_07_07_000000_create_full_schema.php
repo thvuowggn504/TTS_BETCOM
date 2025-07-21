@@ -90,7 +90,7 @@ return new class extends Migration {
             $table->string('value', 50);
             $table->unsignedBigInteger('version_id');
             $table->enum('data_type', ['string', 'int', 'boolean', 'select', 'select-multi'])->default('string');
-            $table->enum('type_group', ['custom', 'inherited']);
+            $table->enum('type_group', ['custom', 'inherited', 'standard'])->default('custom');
             $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
         });
 
