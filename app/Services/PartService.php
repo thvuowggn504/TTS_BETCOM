@@ -401,4 +401,12 @@ class PartService
             return $newVersion;
         });
     }
+
+    public function searchPart($keyword) {
+        return Part::where(function ($query) use ($keyword) {
+            $query->where('name', 'ilike', '%' . $keyword . '%')
+                ->orWhere('code', 'ilike', '%' . $keyword . '%')
+                ->orWhere('description', 'ilike', '%' . $keyword . '%');
+        })->get();
+    }
 }

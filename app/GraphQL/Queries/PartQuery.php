@@ -84,4 +84,10 @@ class PartQuery
     {
         return $this->partService->getPublishedParts();
     }
+
+    public function searchParts($_, array $args)
+    {
+        $keyword = $args['keyword'] ?? '';
+        return $this->partService->searchPart($keyword);
+    }
 }
