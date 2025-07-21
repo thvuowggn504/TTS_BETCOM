@@ -37,4 +37,11 @@ class PartResolver
     {
         return $this->partService->deleteDraftVersion($args['version_id']);
     }
+
+    public function editPublishedVersion($_, array $args)
+    {
+        $versionId = $args['version_id'];
+
+        return $this->partService->editPublishedVersion($versionId);
+    }
 }

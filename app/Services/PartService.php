@@ -338,6 +338,57 @@ class PartService
             $part->additional_fields = $version?->additionalFields ?? [];
             unset($part->revisions);
             return $part;
-        })->values(); 
+        })->values();
+    }
+
+    /**
+     * Tạo bản sao của một version Published với status là Draft để chỉnh sửa.
+     */
+    public function editPublishedVersion($versionId)
+    {
+        return DB::transaction(function () use ($versionId) {
+            $userId = 2;
+
+            $publishedVersion = $this->partRepository->getVersion($versionId);
+
+            if ($publishedVersion->status !== 'Published') {
+                throw new \Exception('Only published versions can be edited.');
+            }
+
+            // ✅ Tạo bản sao mới (Draft)
+            $newVersion = $this->partRepository->createVersion([
+                'revision_id'         => $publishedVersion->revision_id,
+                'based_upon_version_id' => $publishedVersion->id,
+                'version_code'        => $publishedVersion->version_code,
+                'name'                => $publishedVersion->name,
+                'description'         => $publishedVersion->description,
+                'code'                => $publishedVersion->code,
+                'type_id'             => $publishedVersion->type_id,
+                'status'              => 'Draft',
+                'created_by'          => $userId,
+                'created_at'          => now(),
+                'updated_at'          => now(),
+            ]);
+
+            // ✅ Archive các bản Draft cũ trong revision (trừ bản vừa tạo)
+            $this->partRepository->archiveDraftVersionIfExists($publishedVersion->revision_id, $newVersion->id);
+
+            // ✅ Sao chép các additional fields
+            if ($publishedVersion->additionalFields && $publishedVersion->additionalFields->count()) {
+                foreach ($publishedVersion->additionalFields as $field) {
+                    $this->partRepository->createAdditionalField([
+                        'version_id'  => $newVersion->id,
+                        'name'        => $field->name,
+                        'value'       => $field->value,
+                        'data_type'   => $field->data_type,
+                        'type_group'  => $field->type_group,
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ]);
+                }
+            }
+
+            return $newVersion;
+        });
     }
 }
