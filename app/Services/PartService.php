@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\CreatePartRequest;
 use App\Http\Requests\EditPartRequest;
+use App\Models\Group;
 use App\Models\Part;
 use App\Models\Version;
 use App\Repositories\PartRepository;
@@ -341,6 +342,50 @@ class PartService
         })->values();
     }
 
+    public function getPublishedPartsForGroup($groupId)
+    {
+        // Lấy version_id đã được sử dụng trong group_part của group này
+        $usedVersionIds = DB::table('group_parts')
+            ->where('group_id', $groupId)
+            ->pluck('version_id')
+            ->toArray();
+        
+        $group = Group::findOrFail($groupId);
+        $excludePartId = $group->assembler_id; // Lấy part cha (assembler) của group
+
+        return Part::with(['revisions' => function ($query) {
+            $query->orderByDesc('updated_at')->limit(1);
+        }, 'revisions.versions' => function ($query) {
+            $query->orderByDesc('created_at');
+        }])
+            ->where('id', '!=', $excludePartId) // loại part cha ra 
+            ->get()
+            ->filter(function ($part) use ($usedVersionIds) {
+                $revision = $part->revisions->first();
+                if (!$revision) return false;
+                // Kiểm tra revision có version nào Published không và không nằm trong danh sách trong group
+                return $revision->versions->contains(function ($version) use ($usedVersionIds) {
+                    return $version->status === 'Published' && !in_array($version->id, $usedVersionIds);
+                });
+            })
+            ->map(function ($part) use ($usedVersionIds) {
+                $revision = $part->revisions->first();
+
+                $version = $revision->versions
+                    ->filter(fn($v) => $v->status === 'Published' && !in_array($v->id, $usedVersionIds))
+                    ->first()
+                    ?? $revision->versions->where('status', 'Archived')->sortByDesc('created_at')->first()
+                    ?? $revision->versions->firstWhere('status', 'Draft');
+
+                $part->selected_version = $version;
+                $part->additional_fields = $version?->additionalFields ?? [];
+                unset($part->revisions);
+                return $part;
+            })
+            ->values();
+    }
+
+
     /**
      * Tạo bản sao của một version Published với status là Draft để chỉnh sửa.
      */
@@ -392,7 +437,8 @@ class PartService
         });
     }
 
-    public function searchPart($keyword) {
+    public function searchPart($keyword)
+    {
         return Part::where(function ($query) use ($keyword) {
             $query->where('name', 'ilike', '%' . $keyword . '%')
                 ->orWhere('code', 'ilike', '%' . $keyword . '%')
@@ -400,7 +446,8 @@ class PartService
         })->get();
     }
 
-    public function searchByType($typeId) {
+    public function searchByType($typeId)
+    {
         return Part::where('type_id', $typeId)->get();
     }
 }

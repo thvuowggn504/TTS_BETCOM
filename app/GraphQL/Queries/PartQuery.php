@@ -82,7 +82,8 @@ class PartQuery
 
     public function getPublishedParts($_, array $args)
     {
-        return $this->partService->getPublishedParts();
+        // return $this->partService->getPublishedParts();
+        return $this->partService->getPublishedPartsForGroup($args['groupId']);
     }
 
     public function searchParts($_, array $args)
