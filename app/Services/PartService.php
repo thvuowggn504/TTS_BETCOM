@@ -376,10 +376,10 @@ class PartService
                 'updated_at'          => now(),
             ]);
 
-            // ✅ Archive các bản Draft cũ trong revision (trừ bản vừa tạo)
+            // Archive các bản Draft cũ trong revision (trừ bản vừa tạo)
             $this->partRepository->archiveDraftVersionIfExists($publishedVersion->revision_id, $newVersion->id);
 
-            // ✅ Sao chép các additional fields
+            // Sao chép các additional fields
             if ($publishedVersion->additionalFields && $publishedVersion->additionalFields->count()) {
                 foreach ($publishedVersion->additionalFields as $field) {
                     $this->partRepository->createAdditionalField([
