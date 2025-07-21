@@ -150,7 +150,9 @@ type GroupPart {
 
 extend type Query {
     groups(versionId: ID!): [Group!]
-        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId")
+        @field(
+            resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId"
+        )
 }
 
 input CreateGroupPartInput {
@@ -235,5 +237,12 @@ type Mutation {
     deleteDraftVersion(version_id: ID!): Boolean
         @field(
             resolver: "App\\GraphQL\\Mutations\\PartResolver@deleteDraftVersion"
+        )
+}
+
+type Mutation {
+    editPublishedVersion(version_id: ID!): Version
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@editPublishedVersion"
         )
 }
