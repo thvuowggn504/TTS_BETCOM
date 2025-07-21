@@ -61,4 +61,40 @@ class VersionService
         });
     }
 
+    public function getCustomFields($versionId)
+    {
+        $version = $this->partRepository->getVersion($versionId);
+        if (!$version) {
+            throw new \Exception('Version not found.');
+        }
+
+        return $version->additionalFields->filter(function ($field) {
+            return $field->type_group === 'custom';
+        });
+    }
+
+    public function getStandardFields($versionId)
+    {
+        $version = $this->partRepository->getVersion($versionId);
+        if (!$version) {
+            throw new \Exception('Version not found.');
+        }
+
+        return $version->additionalFields->filter(function ($field) {
+            return $field->type_group === 'standard';
+        });
+    }
+
+    public function getInheritedFields($versionId)
+    {
+        $version = $this->partRepository->getVersion($versionId);
+        if (!$version) {
+            throw new \Exception('Version not found.');
+        }
+
+        return $version->additionalFields->filter(function ($field) {
+            return $field->type_group === 'inherited';
+        });
+    }
+
 }
