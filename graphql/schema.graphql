@@ -84,7 +84,7 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartById")
     parts: [Part!]
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
-    publishedPart: [Part!]!
+    publishedPart(groupId: ID!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPublishedParts")
     searchParts(keyword: String!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@searchParts")
