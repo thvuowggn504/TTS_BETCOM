@@ -74,6 +74,9 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
+    getCustomFields(versionId: ID!): [AdditionalField!]!
+        @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getCustomFields")
+    
 
     types: [Type] @all
 
@@ -83,6 +86,10 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
     publishedPart: [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPublishedParts")
+    searchParts(keyword: String!): [Part!]!
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@searchParts")
+    getPartsByType(typeId: ID!): [Part!]!
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByType")
 }
 
 input CreatePartInput {
@@ -103,6 +110,7 @@ input AdditionalFieldInput {
 enum TypeGroupEnum {
     CUSTOM
     INHERITED
+    STANDARD
 }
 
 enum DataTypeEnum {
