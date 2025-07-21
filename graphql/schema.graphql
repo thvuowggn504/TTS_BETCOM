@@ -226,7 +226,6 @@ input UpdatePartInput {
     code: String
     description: String
     type_id: Int
-    version_id: ID
     additional_fields: [AdditionalFieldInput!]
 }
 
@@ -240,16 +239,12 @@ input AdditionalFieldInput {
 extend type Mutation {
     updatePart(input: UpdatePartInput!): Version
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updatePart")
-}
 
-type Mutation {
     deleteDraftVersion(version_id: ID!): Boolean
         @field(
             resolver: "App\\GraphQL\\Mutations\\PartResolver@deleteDraftVersion"
         )
-}
 
-type Mutation {
     editPublishedVersion(version_id: ID!): Version
         @field(
             resolver: "App\\GraphQL\\Mutations\\PartResolver@editPublishedVersion"
