@@ -103,8 +103,9 @@ input CreatePartInput {
 
 input AdditionalFieldInput {
     name: String!
-    value: String!
+    value: String!  
     data_type: DataTypeEnum = STRING
+    type_group: TypeGroupEnum = CUSTOM
 }
 
 enum TypeGroupEnum {
