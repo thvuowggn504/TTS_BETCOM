@@ -90,4 +90,15 @@ class PartQuery
         $keyword = $args['keyword'] ?? '';
         return $this->partService->searchPart($keyword);
     }
+
+    public function getPartsByType($_, array $args)
+    {
+        $typeId = $args['typeId'] ?? null;
+
+        if (!$typeId) {
+            return null;
+        }
+
+        return $this->partService->searchByType($typeId);
+    }
 }

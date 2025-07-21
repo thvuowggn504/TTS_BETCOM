@@ -409,4 +409,8 @@ class PartService
                 ->orWhere('description', 'ilike', '%' . $keyword . '%');
         })->get();
     }
+
+    public function searchByType($typeId) {
+        return Part::where('type_id', $typeId)->get();
+    }
 }
