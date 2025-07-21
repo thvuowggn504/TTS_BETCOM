@@ -360,7 +360,7 @@ class PartService
                 throw new \Exception('Only published versions can be edited.');
             }
 
-            // ✅ Tạo bản sao mới (Draft)
+            // Tạo bản sao mới (Draft)
             $newVersion = $this->partRepository->createVersion([
                 'revision_id'         => $publishedVersion->revision_id,
                 'based_upon_version_id' => $publishedVersion->id,
