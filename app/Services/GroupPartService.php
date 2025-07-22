@@ -80,18 +80,25 @@ class GroupPartService
         return $groupParts;
     }
 
-    public function deleteGroupPart(int $id):bool
+    // Xoá toàn bộ group theo ID (có sử dụng transaction)
+    public function deleteGroup(int $id): bool
     {
         return DB::transaction(function () use ($id) {
             $group = $this->groupPartRepository->findGroupById($id);
 
-            if(!$group) {
-                throw new \Exception('Group not found');
+            if (!$group) {
+                throw new \Exception('Group not found'); // Nếu không tìm thấy group thì throw lỗi
             }
 
-            $group->delete();
+            $group->delete(); // Xoá group
 
-            return true;
+            return true; // Xoá thành công
         });
+    }
+
+    // Xoá một part trong group dựa theo ID của group_part
+    public function deleteGroupPartById(int $id): bool
+    {
+        return $this->groupPartRepository->deleteGroupPartById($id);
     }
 }
