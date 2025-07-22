@@ -16,4 +16,9 @@ class GroupPartResolver
     {
         return $this->groupPartService->createGroupPart($args['input']);
     }
+
+    public function deleteGroup($_, array $args)
+    {
+        return $this->groupPartService->deleteGroupPart($args['id']);
+    }
 }

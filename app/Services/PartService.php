@@ -464,7 +464,7 @@ class PartService
         return Part::where('type_id', $typeId)->get();
     }
 
-    public function deletePart(int $id) {
+    public function deletePart(int $id):bool {
         return DB::transaction(function () use ($id) {
             $part = $this->partRepository->findById($id);
 

@@ -252,4 +252,9 @@ extend type Mutation {
 
     deletePart(id: ID!): Boolean
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@deletePart")
+
+    deleteGroup(id: ID!): Boolean
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\GroupPartResolver@deleteGroup"
+        )
 }
