@@ -11,16 +11,19 @@ use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\VersionRepository;
+use App\Repositories\RevisionRepository;
 
 class PartService
 {
     protected $partRepository;
     protected $versionRepository;
+    protected $revisionRepository;
 
-    public function __construct(PartRepository $partRepository, VersionRepository $versionRepository)
+    public function __construct(PartRepository $partRepository, VersionRepository $versionRepository, RevisionRepository $revisionRepository)
     {
         $this->partRepository = $partRepository;
         $this->versionRepository = $versionRepository;
+        $this->revisionRepository = $revisionRepository;
     }
 
     /**
@@ -354,7 +357,7 @@ class PartService
             ->where('group_id', $groupId)
             ->pluck('version_id')
             ->toArray();
-        
+
         $group = Group::findOrFail($groupId);
         $excludePartId = $group->assembler_id; // Lấy part cha (assembler) của group
 

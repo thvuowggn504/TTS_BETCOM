@@ -13,7 +13,7 @@ class Revision extends Model
         'part_id',
         'revision_code',
         'latest_version',
-        'created_by', 
+        'created_by',
         'created_at',
         'updated_at'
     ];

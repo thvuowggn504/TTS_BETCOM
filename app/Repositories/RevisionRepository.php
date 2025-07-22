@@ -44,4 +44,9 @@ class RevisionRepository
         }
         return '2.0';
     }
+
+    public function sortByDesc($field)
+    {
+        return Revision::orderBy($field, 'desc')->get();
+    }
 }
