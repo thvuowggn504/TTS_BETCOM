@@ -236,6 +236,11 @@ input AdditionalFieldInput {
     type_group: String
 }
 
+type EditPublishedVersionResponse {
+    success: Boolean!
+    message: String
+}
+
 extend type Mutation {
     updatePart(input: UpdatePartInput!): Version
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updatePart")
@@ -245,7 +250,7 @@ extend type Mutation {
             resolver: "App\\GraphQL\\Mutations\\PartResolver@deleteDraftVersion"
         )
 
-    editPublishedVersion(version_id: ID!): Version
+    editPublishedVersion(version_id: ID!): EditPublishedVersionResponse
         @field(
             resolver: "App\\GraphQL\\Mutations\\PartResolver@editPublishedVersion"
         )

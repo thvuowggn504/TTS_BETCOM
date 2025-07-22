@@ -149,7 +149,8 @@ class PartService
 
             // Nếu version hiện tại là Published → clone version mới (Draft) trước khi chỉnh sửa
             if ($currentVersion->status === 'Published') {
-                $currentVersion = $this->editPublishedVersion($currentVersion->id);
+                // Nếu version là Published → chỉ tạo bản nháp mới, không update gì cả
+                return $this->updatePublishedVersion($currentVersion->id);
             }
 
             // Kiểm tra code bị trùng nếu có chỉnh sửa
@@ -395,7 +396,7 @@ class PartService
     /**
      * Tạo bản sao của một version Published với status là Draft để chỉnh sửa.
      */
-    public function editPublishedVersion($versionId)
+    public function updatePublishedVersion($versionId)
     {
         return DB::transaction(function () use ($versionId) {
             $userId = 2;

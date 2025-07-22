@@ -38,14 +38,20 @@ class PartResolver
         return $this->partService->deleteDraftVersion($args['version_id']);
     }
 
-    public function editPublishedVersion($_, array $args)
+    public function updatePublishedVersion($_, array $args)
     {
         $versionId = $args['version_id'];
 
-        return $this->partService->editPublishedVersion($versionId);
+        $this->partService->updatePublishedVersion($versionId);
+
+        return [
+            'success' => true,
+            'message' => 'Published version edited successfully.',
+        ];
     }
 
-    public function deletePart($_, array $args) {
+    public function deletePart($_, array $args)
+    {
         return $this->partService->deletePart($args['id']);
     }
 }
