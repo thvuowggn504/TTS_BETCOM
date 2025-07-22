@@ -57,4 +57,29 @@ class Part extends Model
             'latest_version'
         )->where('status', 'Published');
     }
+
+    protected $appends = ['selected_version']; // Thêm selected_version vào thuộc tính trả về
+
+    public function getSelectedVersionAttribute()
+    {
+        return $this->getSelectedVersion();
+    }
+
+    public function getSelectedVersion(): ?Version
+    {
+        // Lấy revision mới nhất
+        $revision = $this->revisions()
+            ->orderBy('updated_at', 'desc')
+            ->with(['versions.additionalFields'])
+            ->first();
+
+        if (!$revision) {
+            return null;
+        }
+
+        // Ưu tiên chọn version theo thứ tự: Published > Archived (mới nhất) > Draft
+        return $revision->versions->firstWhere('status', 'Published')
+            ?? $revision->versions->where('status', 'Archived')->sortByDesc('created_at')->first()
+            ?? $revision->versions->firstWhere('status', 'Draft');
+    }
 }

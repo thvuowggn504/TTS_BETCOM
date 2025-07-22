@@ -76,7 +76,6 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
     getCustomFields(versionId: ID!): [AdditionalField!]!
         @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getCustomFields")
-    
 
     types: [Type] @all
 
@@ -103,7 +102,7 @@ input CreatePartInput {
 
 input AdditionalFieldInput {
     name: String!
-    value: String!  
+    value: String!
     data_type: DataTypeEnum = STRING
     type_group: TypeGroupEnum = CUSTOM
 }
@@ -155,6 +154,7 @@ type GroupPart {
 
     group: Group @belongsTo
     part: Part @belongsTo
+    version: Version @belongsTo
 }
 
 extend type Query {
