@@ -73,7 +73,7 @@ class PartService
             // Tạo Version đầu tiên (v1.0) cho Revision
             $version = $this->partRepository->createVersion([
                 'revision_id' => $revision->id,
-                'version_code' => 'v1.0',
+                'version_code' => '1.0',
                 'name' => $data['name'],
                 'code' => $data['code'],
                 'description' => $data['description'] ?? null,
@@ -147,7 +147,7 @@ class PartService
             $revision = $currentVersion->revision;
             $part = $revision->part;
 
-            // ✅ Nếu version hiện tại là Published → clone version mới (Draft) trước khi chỉnh sửa
+            // Nếu version hiện tại là Published → clone version mới (Draft) trước khi chỉnh sửa
             if ($currentVersion->status === 'Published') {
                 $currentVersion = $this->editPublishedVersion($currentVersion->id);
             }
@@ -159,21 +159,19 @@ class PartService
                 }
             }
 
-            // ✅ Archive version Draft cũ (trừ bản đang sửa)
+            // Archive version Draft cũ (trừ bản đang sửa)
             $this->partRepository->archiveDraftVersionIfExists($revision->id, $currentVersion->id);
 
-            // ✅ Archive version hiện tại (đang sửa)
+            // Archive version hiện tại (đang sửa)
             $this->partRepository->updateVersion($currentVersion->id, [
                 'status' => 'Archived',
                 'updated_at' => now(),
             ]);
 
-            // Tạo version_code mới theo định dạng "1.2", "2.1",...
-            [$revMajor] = explode('.', $revision->revision_code);
-            $versionCount = $this->partRepository->countVersionsByRevision($revision->id);
-            $versionCode = $revMajor . '.' . $versionCount;
+            // Tạo version_code mới theo định dạng "1.0", "1.1", "1.2", ...
+            $versionCode = $this->generateNextVersionCode($revision);
 
-            // ✅ Tạo version mới với dữ liệu mới (hoặc giữ nguyên nếu không đổi)
+            // Tạo version mới với dữ liệu mới
             $newVersion = $this->partRepository->createVersion([
                 'revision_id'            => $revision->id,
                 'version_code'           => $versionCode,
@@ -189,13 +187,13 @@ class PartService
                 'updated_at'             => now(),
             ]);
 
-            // ✅ Cập nhật latest_version cho revision
+            // Cập nhật latest_version cho revision
             $this->partRepository->updateRevision($revision->id, [
                 'latest_version' => $newVersion->id,
                 'updated_at' => now(),
             ]);
 
-            // ✅ Thêm additional fields nếu có
+            // Thêm additional fields nếu có
             if (!empty($data['additional_fields'])) {
                 foreach ($data['additional_fields'] as $field) {
                     $this->partRepository->createAdditionalField([
@@ -410,18 +408,18 @@ class PartService
 
             // Tạo bản sao mới (Draft)
             $newVersion = $this->partRepository->createVersion([
-                'revision_id'         => $publishedVersion->revision_id,
-                'based_upon_version_id' => $publishedVersion->id,
-                'version_code'        => $publishedVersion->version_code,
-                'name'                => $publishedVersion->name,
-                'description'         => $publishedVersion->description,
-                'code'                => $publishedVersion->code,
-                'type_id'             => $publishedVersion->type_id,
-                'status'              => 'Draft',
+                'revision_id'            => $publishedVersion->revision_id,
+                'based_upon_version_id'  => $publishedVersion->id,
+                'version_code'           => $this->generateNextVersionCode($publishedVersion->revision),
+                'name'                   => $publishedVersion->name,
+                'description'            => $publishedVersion->description,
+                'code'                   => $publishedVersion->code,
+                'type_id'                => $publishedVersion->type_id,
+                'status'                 => 'Draft',
                 'enable_assembly_groups' => $publishedVersion->enable_assembly_groups,
-                'created_by'          => $userId,
-                'created_at'          => now(),
-                'updated_at'          => now(),
+                'created_by'             => $userId,
+                'created_at'             => now(),
+                'updated_at'             => now(),
             ]);
 
             // Archive các bản Draft cũ trong revision (trừ bản vừa tạo)
@@ -477,5 +475,25 @@ class PartService
 
             return true;
         });
+    }
+
+    protected function generateNextVersionCode($revision)
+    {
+        $major = (int) explode('.', $revision->revision_code)[0];
+
+        $existingVersions = $revision->versions ?? $this->partRepository->getAllVersionsOfRevision($revision->id);
+
+        $maxMinor = 0;
+
+        foreach ($existingVersions as $version) {
+            if (preg_match('/^' . $major . '\.(\d+)$/', $version->version_code, $matches)) {
+                $minor = (int) $matches[1];
+                if ($minor > $maxMinor) {
+                    $maxMinor = $minor;
+                }
+            }
+        }
+
+        return $major . '.' . ($maxMinor + 1);
     }
 }
