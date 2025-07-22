@@ -144,8 +144,13 @@ class PartRepository
             ]);
     }
 
-    public function findById(int $id) {
+    public function findById(int $id)
+    {
         return Part::find($id);
     }
-}
 
+    public function getAllVersionsOfRevision($revisionId)
+    {
+        return Version::where('revision_id', $revisionId)->get();
+    }
+}
