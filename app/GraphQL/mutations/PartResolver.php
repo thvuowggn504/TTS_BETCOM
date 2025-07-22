@@ -44,4 +44,8 @@ class PartResolver
 
         return $this->partService->editPublishedVersion($versionId);
     }
+
+    public function deletePart($_, array $args) {
+        return $this->partService->deletePart($args['id']);
+    }
 }
