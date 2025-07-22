@@ -19,6 +19,11 @@ class GroupPartResolver
 
     public function deleteGroup($_, array $args)
     {
-        return $this->groupPartService->deleteGroupPart($args['id']);
+        return $this->groupPartService->deleteGroup($args['id']);
+    }
+
+    public function deleteGroupPartById($_, array $args)
+    {
+        return $this->groupPartService->deleteGroupPartById($args['id']);
     }
 }
