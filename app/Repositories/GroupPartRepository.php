@@ -55,4 +55,8 @@ class GroupPartRepository
             ->where('part_id', $partId)
             ->exists();
     }
+
+    public function findGroupById(int $id) {
+        return \App\Models\Group::find($id);
+    }
 }

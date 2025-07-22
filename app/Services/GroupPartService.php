@@ -79,4 +79,19 @@ class GroupPartService
 
         return $groupParts;
     }
+
+    public function deleteGroupPart(int $id):bool
+    {
+        return DB::transaction(function () use ($id) {
+            $group = $this->groupPartRepository->findGroupById($id);
+
+            if(!$group) {
+                throw new \Exception('Group not found');
+            }
+
+            $group->delete();
+
+            return true;
+        });
+    }
 }
