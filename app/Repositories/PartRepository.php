@@ -143,5 +143,9 @@ class PartRepository
                 'updated_at' => now(),
             ]);
     }
+
+    public function findById(int $id) {
+        return Part::find($id);
+    }
 }
 
