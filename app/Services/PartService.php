@@ -70,6 +70,7 @@ class PartService
                 'updated_at' => now(),
             ]);
 
+
             // Tạo Version đầu tiên (v1.0) cho Revision
             $version = $this->partRepository->createVersion([
                 'revision_id' => $revision->id,
@@ -78,7 +79,7 @@ class PartService
                 'code' => $data['code'],
                 'description' => $data['description'] ?? null,
                 'type_id' => $data['type_id'],
-                'status' => 'Draft',
+                'status' => ($data['addToGroup'] == false) ? 'Draft' : 'Published',
                 'enable_assembly_groups' => $data['enable_assembly_groups'],
                 'created_by' => 1,
                 'created_at' => now(),

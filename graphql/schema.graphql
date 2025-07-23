@@ -110,6 +110,7 @@ input CreatePartInput {
     description: String
     additional_fields: [AdditionalFieldInput!] # Các trường bổ sung theo type
     enable_assembly_groups: Boolean!
+    addToGroup: Boolean = false
 }
 
 input AdditionalFieldInput {
