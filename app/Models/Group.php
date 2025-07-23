@@ -27,4 +27,9 @@ class Group extends Model
     {
         return $this->hasMany(GroupPart::class);
     }
+
+    // public function parts()
+    // {
+    //     return $this->belongsToMany(Part::class, 'group_parts');
+    // }
 }
