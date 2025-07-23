@@ -83,7 +83,9 @@ extend type Query {
     getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
     getVerisionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
-        @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
+        @field(
+            resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode"
+        )
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
     getCustomFields(versionId: ID!): [AdditionalField!]!
@@ -153,14 +155,13 @@ type Group {
     name: String!
     version_id: ID
     is_optional: Boolean
-    type_id: ID
+    type: Type
 
+    type: Type @belongsTo
     assembler: Part @belongsTo
     version: Version @belongsTo
-    type: Type @belongsTo
     groupParts: [GroupPart!] @hasMany
 }
-
 
 type GroupPart {
     id: ID!
@@ -226,7 +227,7 @@ extend type Mutation {
         )
 
     deleteCodebuilderRule(id: ID!): Boolean
-        @delete(model: "App\\Models\\CodebuilderRule")
+        @delete(model: "App\\Models\\Codebuilder")
 }
 
 input CreateCodebuilderRuleInput {
@@ -259,6 +260,13 @@ type EditPublishedVersionResponse {
     message: String
 }
 
+input EditGroupInput {
+    id: ID!
+    name: String
+    type_id: ID
+    is_optional: Boolean
+}
+
 extend type Mutation {
     updatePart(input: UpdatePartInput!): Version
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updatePart")
@@ -268,9 +276,9 @@ extend type Mutation {
             resolver: "App\\GraphQL\\Mutations\\PartResolver@deleteDraftVersion"
         )
 
-    editPublishedVersion(version_id: ID!): EditPublishedVersionResponse
+    clonePublishedVersion(version_id: ID!): EditPublishedVersionResponse
         @field(
-            resolver: "App\\GraphQL\\Mutations\\PartResolver@editPublishedVersion"
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@clonePublishedVersion"
         )
 
     deletePart(id: ID!): Boolean
@@ -282,4 +290,9 @@ extend type Mutation {
         )
     deleteGroupPartById(id: Int!): Boolean
         @field(resolver: "GroupPartResolver@deleteGroupPartById")
+
+    updateGroup(input: EditGroupInput!): Group!
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\GroupResolver@updateGroupById"
+        )
 }
