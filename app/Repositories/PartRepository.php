@@ -153,4 +153,16 @@ class PartRepository
     {
         return Version::where('revision_id', $revisionId)->get();
     }
+
+    public function updateOrCreateAdditionalField(array $conditions, array $values)
+    {
+        return AdditionalField::updateOrCreate($conditions, $values);
+    }
+
+    public function deleteAdditionalFieldsByNames($versionId, array $names)
+    {
+        return AdditionalField::where('version_id', $versionId)
+            ->whereIn('name', $names)
+            ->delete();
+    }
 }
