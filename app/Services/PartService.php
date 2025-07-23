@@ -159,8 +159,8 @@ class PartService
                     // Nếu đã có Draft → sử dụng version đó để update
                     $currentVersion = $existingDraft;
                 } else {
-                    // Nếu chưa có Draft → tạo bản sao và dừng lại tại đây
-                    return $this->updatePublishedVersion($currentVersion->id);
+                    // Nếu chưa có Draft → tạo bản sao và tiếp tục update bản sao
+                    $currentVersion = $this->clonePublishedVersion($currentVersion->id);
                 }
             }
 
@@ -320,7 +320,7 @@ class PartService
             return $deleted;
         });
     }
-    
+
 
     public function getPublishedParts()
     {
@@ -398,7 +398,7 @@ class PartService
     /**
      * Tạo bản sao của một version Published với status là Draft để chỉnh sửa.
      */
-    public function updatePublishedVersion($versionId)
+    public function clonePublishedVersion($versionId)
     {
         return DB::transaction(function () use ($versionId) {
             $userId = 2;
@@ -406,7 +406,7 @@ class PartService
             $publishedVersion = $this->partRepository->getVersion($versionId);
 
             if ($publishedVersion->status !== 'Published') {
-                throw new \Exception('Only published versions can be edited.');
+                throw new \Exception('Only published versions can be cloned.');
             }
 
             // Tạo bản sao mới (Draft)
@@ -429,22 +429,22 @@ class PartService
             $this->partRepository->archiveDraftVersionIfExists($publishedVersion->revision_id, $newVersion->id);
 
             // Sao chép các additional fields
-            if ($publishedVersion->additionalFields && $publishedVersion->additionalFields->count()) {
-                foreach ($publishedVersion->additionalFields as $field) {
-                    $this->partRepository->createAdditionalField([
-                        'version_id'  => $newVersion->id,
-                        'name'        => $field->name,
-                        'value'       => $field->value,
-                        'data_type'   => $field->data_type,
-                        'type_group'  => $field->type_group,
-                        'created_at'  => now(),
-                        'updated_at'  => now(),
-                    ]);
-                }
+            foreach ($publishedVersion->additionalFields as $field) {
+                $this->partRepository->createAdditionalField([
+                    'version_id'  => $newVersion->id,
+                    'name'        => $field->name,
+                    'value'       => $field->value,
+                    'data_type'   => $field->data_type,
+                    'type_group'  => $field->type_group,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
             }
+
+            // Cập nhật lại latest_version cho revision
             $this->partRepository->updateRevision($publishedVersion->revision_id, [
                 'latest_version' => $newVersion->id,
-                'updated_at' => now(),
+                'updated_at'     => now(),
             ]);
 
             return $newVersion;

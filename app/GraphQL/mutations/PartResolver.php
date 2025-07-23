@@ -38,11 +38,11 @@ class PartResolver
         return $this->partService->deleteDraftVersion($args['version_id']);
     }
 
-    public function updatePublishedVersion($_, array $args)
+    public function clonePublishedVersion($_, array $args)
     {
         $versionId = $args['version_id'];
 
-        $this->partService->updatePublishedVersion($versionId);
+        $this->partService->clonePublishedVersion($versionId);
 
         return [
             'success' => true,
