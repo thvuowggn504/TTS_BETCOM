@@ -320,6 +320,7 @@ class PartService
             return $deleted;
         });
     }
+    
 
     public function getPublishedParts()
     {
