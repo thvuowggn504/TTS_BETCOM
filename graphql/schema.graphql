@@ -53,6 +53,8 @@ type Version {
     updated_at: String!
     creator: User
     enable_assembly_groups: Boolean!
+
+    part: Part @belongsTo
 }
 
 type AdditionalField {
@@ -65,6 +67,8 @@ type AdditionalField {
     type_group: String!
     created_at: DateTime
     updated_at: DateTime
+
+    version: Version @belongsTo
 }
 
 extend type Query {
@@ -162,6 +166,8 @@ extend type Query {
         @field(
             resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId"
         )
+    # getAdditionalFieldsFromGroup(groupId: ID!): [AdditionalField]
+    #     @field(resolver: "App\\GraphQL\\Queries\\GroupPartQuery@getAdditionalFieldsFromGroup")
 }
 
 input CreateGroupPartInput {

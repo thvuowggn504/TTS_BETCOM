@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Repositories\VersionRepository;
 use App\Repositories\GroupPartRepository;
 use COM;
+use Illuminate\Support\Collection;
 
 class GroupPartService
 {
@@ -101,4 +102,35 @@ class GroupPartService
     {
         return $this->groupPartRepository->deleteGroupPartById($id);
     }
+
+    // public function getAdditionalFieldsFromGroup(int $input): Collection
+    // {
+    //     $groupId = $input ?? null;
+
+    //     // Lấy group cùng với các part và selected_version của từng part
+    //     $group = Group::with([
+    //         'parts.revisions' => function ($q) {
+    //             $q->orderBy('updated_at', 'desc')->limit(1)
+    //                 ->with(['versions.additionalFields']);
+    //         }
+    //     ])->findOrFail($groupId);
+
+    //     $allFields = collect();
+
+    //     foreach ($group->parts as $part) {
+    //         $selectedVersion = $part->getSelectedVersion();
+
+    //         if ($selectedVersion) {
+    //             $fields = $selectedVersion->additionalFields;
+
+    //             // Thêm vào collection tổng
+    //             $allFields = $allFields->merge($fields);
+    //         }
+    //     }
+
+    //     // Lọc trùng theo 'name'
+    //     $uniqueFields = $allFields->unique('name')->values();
+
+    //     return $uniqueFields;
+    // }   
 }

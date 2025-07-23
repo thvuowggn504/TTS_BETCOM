@@ -78,7 +78,7 @@ class PartSeeder extends Seeder
 
                     // Tăng thời gian mỗi lần thêm version
                     $versionTime = $revisionTime->copy()->addSeconds($v);
-
+                    $enableAssemblyGroups = $type_id == 5? true : false;
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
                         'version_code' => "1.$v",
@@ -88,7 +88,7 @@ class PartSeeder extends Seeder
                         'description' => "Description for version $versionCounter",
                         'type_id' => $type_id,
                         'status' => $status,
-                        'enable_assembly_groups' => $type_id == 5? true : rand(0, 1),
+                        'enable_assembly_groups' => $enableAssemblyGroups,
                         'created_by' => $userId,
                         'created_at' => $versionTime,
                         'updated_at' => $versionTime
@@ -98,7 +98,7 @@ class PartSeeder extends Seeder
                     $latestVersionId = $versionId;
 
                     // Nếu type là luminaire, tạo 1 group
-                    if ($type_id == 5) {
+                    if ($enableAssemblyGroups) {
                         DB::table('groups')->insert([
                             'name' => "Default Group",
                             'assembler_id' => $partId,

@@ -16,7 +16,7 @@ class AdditionalField extends Model
         return $this->belongsTo(Type::class);
     }
 
-    public function versionId() {
+    public function version () {
         return $this->belongsTo(Version::class);
     }
 }

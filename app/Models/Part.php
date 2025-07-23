@@ -82,4 +82,9 @@ class Part extends Model
             ?? $revision->versions->where('status', 'Archived')->sortByDesc('created_at')->first()
             ?? $revision->versions->firstWhere('status', 'Draft');
     }
+
+    // public function groups()
+    // {
+    //     return $this->belongsToMany(Group::class, 'group_parts');
+    // }
 }
