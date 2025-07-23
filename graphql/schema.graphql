@@ -71,11 +71,19 @@ type AdditionalField {
     version: Version @belongsTo
 }
 
+input GetVerisionByVersionCodeInput {
+    partId: ID!
+    revisionId: ID!
+    versionCode: String!
+}
+
 extend type Query {
     hello: String @field(resolver: "App\\GraphQL\\Queries\\Hello@__invoke")
 
     getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
+    getVerisionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
+        @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
     getCustomFields(versionId: ID!): [AdditionalField!]!
