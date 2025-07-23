@@ -153,11 +153,14 @@ type Group {
     name: String!
     version_id: ID
     is_optional: Boolean
+    type_id: ID
 
     assembler: Part @belongsTo
     version: Version @belongsTo
+    type: Type @belongsTo
     groupParts: [GroupPart!] @hasMany
 }
+
 
 type GroupPart {
     id: ID!

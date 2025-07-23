@@ -100,11 +100,13 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('assembler_id');
             $table->string('name', 100);
+            $table->unsignedInteger('type_id')->nullable(); // Bổ sung trường type_id
             $table->unsignedBigInteger('version_id')->nullable();
             $table->unique(['version_id', 'name']);
             $table->boolean('is_optional')->default(false);
 
             $table->foreign('assembler_id')->references('id')->on('parts')->onDelete('cascade');
+            $table->foreign('type_id')->references('id')->on('type')->onDelete('set null'); //Thêm FK cho type_id
             $table->foreign('version_id')->references('id')->on('versions')->onDelete('set null');
         });
 
@@ -127,7 +129,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('version_id');
             $table->string('name', 100);
-            $table->json('pattern')->nullable();
+            $table->json('rule')->nullable();
             $table->boolean('is_default')->default();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
