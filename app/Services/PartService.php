@@ -147,10 +147,19 @@ class PartService
             $revision = $currentVersion->revision;
             $part = $revision->part;
 
-            // Nếu version hiện tại là Published → clone version mới (Draft) trước khi chỉnh sửa
             if ($currentVersion->status === 'Published') {
-                // Nếu version là Published → chỉ tạo bản nháp mới, không update gì cả
-                return $this->updatePublishedVersion($currentVersion->id);
+                // Tìm version Draft đã tồn tại trong revision này (nếu có)
+                $existingDraft = $revision->versions()
+                    ->where('status', 'Draft')
+                    ->latest('created_at')
+                    ->first();
+
+                if ($existingDraft) {
+                    $currentVersion = $existingDraft; // Gán để update tiếp bên dưới
+                } else {
+                    // Không có Draft → tạo bản sao rồi dừng lại, KHÔNG update tiếp
+                    return $this->updatePublishedVersion($currentVersion->id);
+                }
             }
 
             // Kiểm tra code bị trùng nếu có chỉnh sửa
