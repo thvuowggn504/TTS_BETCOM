@@ -32,6 +32,7 @@ class CreatePartRequest extends FormRequest
             'additional_fields.*.value' => 'required_with:additional_fields|string|max:255',
             'additional_fields.*.data_type' => 'in:string,int,boolean,select,select-multi',
             'additional_fields.*.type_group' => 'in:custom,inherited,standard',
+            'addToGroup' => 'boolean',
         ];
     }
 }
