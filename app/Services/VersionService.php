@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\CreatePartRequest;
+use App\Http\Requests\GetVersionByVersionCodeRequest;
 use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
@@ -97,4 +98,37 @@ class VersionService
         });
     }
 
+    public function getVersionByVersionCode($inputs)
+    {
+        $request = new GetVersionByVersionCodeRequest();
+        $request->merge($inputs);
+        $request->setMethod('POST');
+
+        // Validate input
+        $validator = Validator::make($request->all(), $request->rules());
+        if ($validator->fails()) {
+            throw new \Exception('Invalid input data. ' . $validator->errors());
+        }
+        $data = $validator->validated();
+
+        // Tìm Part
+        $part = $this->partRepository->findById($data['partId']);
+        if (!$part) {
+            throw new \Exception('Part not found.');
+        }
+
+        // Tìm Revision thuộc Part đó
+        $revision = $part->revisions()->where('id', $data['revisionId'])->first();
+        if (!$revision) {
+            throw new \Exception('Revision not found.');
+        }
+
+        // Tìm Version với version_code
+        $version = $revision->versions()->where('version_code', $data['versionCode'])->first();
+        if (!$version) {
+            throw new \Exception('Version not found.');
+        }
+
+        return $version;
+    }
 }

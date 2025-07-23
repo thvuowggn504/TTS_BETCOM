@@ -30,4 +30,9 @@ class VersionQuery
     {
         return $this->versionService->getInheritedFields($args['versionId']);
     }
+
+    public function getVersionByVersionCode($_, array $args)
+    {
+        return $this->versionService->getVersionByVersionCode($args['input']);
+    }
 }
