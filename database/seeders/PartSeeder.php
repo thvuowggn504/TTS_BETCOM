@@ -60,10 +60,10 @@ class PartSeeder extends Seeder
                 ]);
 
                 // Tạo 1–4 Versions cho mỗi Revision
-                $versionCount = rand(1, 4);
+                $versionCount = rand(2, 4);
                 $latestVersionId = null;
 
-                for ($v = 1; $v <= $versionCount; $v++) {
+                for ($v = 0; $v <= $versionCount; $v++) {
                     $status = 'Archived';
                     if (1 == $versionCount) {
                         $status = 'Draft';
@@ -88,7 +88,7 @@ class PartSeeder extends Seeder
                         'description' => "Description for version $versionCounter",
                         'type_id' => $type_id,
                         'status' => $status,
-                        'enable_assembly_groups' => rand(0, 1),
+                        'enable_assembly_groups' => $type_id == 5? true : rand(0, 1),
                         'created_by' => $userId,
                         'created_at' => $versionTime,
                         'updated_at' => $versionTime

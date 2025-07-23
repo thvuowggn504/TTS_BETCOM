@@ -12,14 +12,6 @@ class CodebuilderRuleSeeder extends Seeder
     public function run(): void
     {
         $version = Version::first();
-
-        CodebuilderRule::create([
-            'version_id' => $version->id,
-            'rule' => json_encode([
-                'prefix' => 'SP',
-                'fields' => ['type', 'color', 'watt']
-            ])
-        ]);
     }
 }
 

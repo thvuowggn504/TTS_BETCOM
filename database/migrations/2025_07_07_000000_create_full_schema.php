@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rules\Unique;
 
 return new class extends Migration {
     public function up(): void
@@ -100,6 +101,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('assembler_id');
             $table->string('name', 100);
             $table->unsignedBigInteger('version_id')->nullable();
+            $table->unique(['version_id', 'name']);
             $table->boolean('is_optional')->default(false);
 
             $table->foreign('assembler_id')->references('id')->on('parts')->onDelete('cascade');
@@ -121,11 +123,14 @@ return new class extends Migration {
         });
 
         // CODEBUILDER_RULES
-        Schema::create('codebuilder_rules', function (Blueprint $table) {
+        Schema::create('codebuilder', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('version_id');
-            $table->json('rule');
+            $table->string('name', 100);
+            $table->json('pattern')->nullable();
+            $table->boolean('is_default')->default();
             $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
 
             $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
         });
@@ -133,7 +138,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('codebuilder_rules');
+        Schema::dropIfExists('codebuilder');
         Schema::dropIfExists('group_parts');
         Schema::dropIfExists('groups');
 
