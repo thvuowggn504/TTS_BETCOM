@@ -16,4 +16,16 @@ class GroupRepository
         $group->update($data);
         return $group;
     }
+
+    public function createGroup(array $data): Group
+    {
+        return Group::create($data);
+    }
+
+    public function existsWithNameAndVersion(string $name, ?int $versionId): bool
+    {
+        return Group::where('name', $name)
+            ->where('version_id', $versionId)
+            ->exists();
+    }
 }

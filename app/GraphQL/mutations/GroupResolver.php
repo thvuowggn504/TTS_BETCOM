@@ -19,4 +19,9 @@ class GroupResolver
     {
         return $this->groupService->editGroup($args['input']);
     }
+
+    public function createGroup($_, array $args)
+    {
+        return $this->groupService->create($args['input']);
+    }
 }

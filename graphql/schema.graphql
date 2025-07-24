@@ -153,14 +153,22 @@ type Group {
     id: ID!
     assembler_id: ID!
     name: String!
+    type_id: ID
     version_id: ID
-    is_optional: Boolean
-    type: Type
+    is_optional: Boolean!
 
     type: Type @belongsTo
     assembler: Part @belongsTo
     version: Version @belongsTo
     groupParts: [GroupPart!] @hasMany
+}
+
+input CreateGroupInput {
+    assembler_id: ID!
+    name: String!
+    type_id: ID
+    version_id: ID
+    is_optional: Boolean = false
 }
 
 type GroupPart {
@@ -295,4 +303,6 @@ extend type Mutation {
         @field(
             resolver: "App\\GraphQL\\Mutations\\GroupResolver@updateGroupById"
         )
+    createGroup(input: CreateGroupInput!): Group
+        @field(resolver: "App\\GraphQL\\Mutations\\GroupResolver@createGroup")
 }

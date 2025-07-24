@@ -43,5 +43,15 @@ class GroupService
 
         return $this->groupRepository->updateGroup($group, $data);
     }
-}
 
+    public function create(array $input)
+    {
+        if ($this->groupRepository->existsWithNameAndVersion($input['name'], $input['version_id'] ?? null)) {
+            throw ValidationException::withMessages([
+                'name' => 'The group name must be unique within the same version.',
+            ]);
+        }
+
+        return $this->groupRepository->createGroup($input);
+    }
+}
