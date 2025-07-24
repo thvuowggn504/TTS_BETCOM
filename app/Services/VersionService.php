@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 class VersionService
 {
     protected $partRepository;
+    protected $versionRepository;
 
     public function __construct(PartRepository $partRepository)
     {
@@ -127,6 +128,17 @@ class VersionService
         $version = $revision->versions()->where('version_code', $data['versionCode'])->first();
         if (!$version) {
             throw new \Exception('Version not found.');
+        }
+
+        return $version;
+    }
+
+    public function getByPartRevisionAndCode(int $partId, int $revisionId, string $versionCode): Version
+    {
+        $version = $this->versionRepository->findByPartRevisionAndCode($partId, $revisionId, $versionCode);
+
+        if (!$version) {
+            throw new \Exception('Version not found');
         }
 
         return $version;
