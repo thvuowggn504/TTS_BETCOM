@@ -82,10 +82,13 @@ extend type Query {
 
     getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
+
     getVersionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
         @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
+        
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
+
     getCustomFields(versionId: ID!): [AdditionalField!]!
         @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getCustomFields")
 
@@ -93,12 +96,16 @@ extend type Query {
 
     getPartById(id: ID!): Part
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartById")
+
     parts: [Part!]
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
+
     publishedPart(groupId: ID!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPublishedParts")
+
     searchParts(keyword: String!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@searchParts")
+
     getPartsByType(typeId: ID!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByType")
 }
@@ -117,7 +124,14 @@ input AdditionalFieldInput {
     name: String!
     value: String!
     data_type: DataTypeEnum = STRING
-    type_group: TypeGroupEnum = CUSTOM
+    type_group: TypeGroupEnum = STRING
+}
+
+input AdditionalFieldInput {
+    name: String!
+    value: String
+    data_type: String
+    type_group: String
 }
 
 enum TypeGroupEnum {
@@ -151,16 +165,23 @@ type Group {
     id: ID!
     assembler_id: ID!
     name: String!
-    version_id: ID
-    is_optional: Boolean
     type_id: ID
+    version_id: ID
+    is_optional: Boolean!
 
+    type: Type @belongsTo
     assembler: Part @belongsTo
     version: Version @belongsTo
-    type: Type @belongsTo
     groupParts: [GroupPart!] @hasMany
 }
 
+input CreateGroupInput {
+    assembler_id: ID!
+    name: String!
+    type_id: ID
+    version_id: ID
+    is_optional: Boolean = false
+}
 
 type GroupPart {
     id: ID!
@@ -226,7 +247,7 @@ extend type Mutation {
         )
 
     deleteCodebuilderRule(id: ID!): Boolean
-        @delete(model: "App\\Models\\CodebuilderRule")
+        @delete(model: "App\\Models\\Codebuilder")
 }
 
 input CreateCodebuilderRuleInput {
@@ -247,16 +268,27 @@ input UpdatePartInput {
     additional_fields: [AdditionalFieldInput!]
 }
 
-input AdditionalFieldInput {
-    name: String!
-    value: String
-    data_type: String
-    type_group: String
-}
-
 type EditPublishedVersionResponse {
     success: Boolean!
     message: String
+}
+
+input EditGroupInput {
+    id: ID!
+    name: String
+    type_id: ID
+    is_optional: Boolean
+}
+
+extend type Query {
+    getVersionByCode(
+        part_id: Int!
+        revision_id: Int!
+        version_code: String!
+    ): Version
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\VersionResolver@getVersionByCode"
+        )
 }
 
 extend type Mutation {
@@ -268,9 +300,9 @@ extend type Mutation {
             resolver: "App\\GraphQL\\Mutations\\PartResolver@deleteDraftVersion"
         )
 
-    editPublishedVersion(version_id: ID!): EditPublishedVersionResponse
+    clonePublishedVersion(version_id: ID!): EditPublishedVersionResponse
         @field(
-            resolver: "App\\GraphQL\\Mutations\\PartResolver@editPublishedVersion"
+            resolver: "App\\GraphQL\\Mutations\\PartResolver@clonePublishedVersion"
         )
 
     deletePart(id: ID!): Boolean
@@ -282,4 +314,11 @@ extend type Mutation {
         )
     deleteGroupPartById(id: Int!): Boolean
         @field(resolver: "GroupPartResolver@deleteGroupPartById")
+
+    updateGroup(input: EditGroupInput!): Group!
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\GroupResolver@updateGroupById"
+        )
+    createGroup(input: CreateGroupInput!): Group
+        @field(resolver: "App\\GraphQL\\Mutations\\GroupResolver@createGroup")
 }
