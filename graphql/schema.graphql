@@ -82,7 +82,7 @@ extend type Query {
 
     getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
-    getVersionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
+    getVersionByVersionCode(input: GetVersionByVersionCodeInput!): Version
         @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
