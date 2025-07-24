@@ -59,4 +59,14 @@ class VersionRepository
     {
         return Version::where('id', $versionId)->delete();
     }
+
+    public function findByPartRevisionAndCode(int $partId, int $revisionId, string $versionCode): ?Version
+    {
+        return Version::where('code', $versionCode)
+            ->whereHas('revision', function ($query) use ($revisionId, $partId) {
+                $query->where('id', $revisionId)
+                    ->where('part_id', $partId);
+            })
+            ->first();
+    }
 }

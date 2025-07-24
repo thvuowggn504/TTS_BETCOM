@@ -82,7 +82,7 @@ extend type Query {
 
     getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
-    getVerisionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
+    getVersionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
         @field(
             resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode"
         )
@@ -119,7 +119,14 @@ input AdditionalFieldInput {
     name: String!
     value: String!
     data_type: DataTypeEnum = STRING
-    type_group: TypeGroupEnum = CUSTOM
+    type_group: TypeGroupEnum = STRING
+}
+
+input AdditionalFieldInput {
+    name: String!
+    value: String
+    data_type: String
+    type_group: String
 }
 
 enum TypeGroupEnum {
@@ -256,13 +263,6 @@ input UpdatePartInput {
     additional_fields: [AdditionalFieldInput!]
 }
 
-input AdditionalFieldInput {
-    name: String!
-    value: String
-    data_type: String
-    type_group: String
-}
-
 type EditPublishedVersionResponse {
     success: Boolean!
     message: String
@@ -273,6 +273,17 @@ input EditGroupInput {
     name: String
     type_id: ID
     is_optional: Boolean
+}
+
+extend type Query {
+    getVersionByCode(
+        part_id: Int!
+        revision_id: Int!
+        version_code: String!
+    ): Version
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\VersionResolver@getVersionByCode"
+        )
 }
 
 extend type Mutation {
