@@ -278,6 +278,7 @@ input EditGroupInput {
     name: String
     type_id: ID
     is_optional: Boolean
+    type: String
 }
 
 extend type Query {
