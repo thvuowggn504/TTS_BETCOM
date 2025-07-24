@@ -71,7 +71,7 @@ type AdditionalField {
     version: Version @belongsTo
 }
 
-input GetVerisionByVersionCodeInput {
+input GetVersionByVersionCodeInput {
     partId: ID!
     revisionId: ID!
     versionCode: String!
@@ -84,10 +84,8 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
 
     getVersionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
-        @field(
-            resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode"
-        )
-
+        @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
+        
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
 
