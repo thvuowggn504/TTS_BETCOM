@@ -82,12 +82,15 @@ extend type Query {
 
     getVersion(id: ID!): Version
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
+
     getVersionByVersionCode(input: GetVerisionByVersionCodeInput!): Version
         @field(
             resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode"
         )
+
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
+
     getCustomFields(versionId: ID!): [AdditionalField!]!
         @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getCustomFields")
 
@@ -95,12 +98,16 @@ extend type Query {
 
     getPartById(id: ID!): Part
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartById")
+
     parts: [Part!]
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllParts")
+
     publishedPart(groupId: ID!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPublishedParts")
+
     searchParts(keyword: String!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@searchParts")
+
     getPartsByType(typeId: ID!): [Part!]!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByType")
 }
