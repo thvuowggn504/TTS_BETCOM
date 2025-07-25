@@ -217,7 +217,7 @@ extend type Query {
             resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId"
         )
     # getAdditionalFieldsFromGroup(groupId: ID!): [AdditionalField]
-    #     @field(resolver: "App\\GraphQL\\Queries\\GroupPartQuery@getAdditionalFieldsFromGroup")
+    #     @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup")
 }
 
 input CreateGroupPartInput {

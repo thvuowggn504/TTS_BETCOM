@@ -86,4 +86,10 @@ class GroupPartRepository
         return DB::table('group_parts')->where('id', $id)->delete() > 0;
         // delete() trả về số dòng bị xoá → > 0 nghĩa là có dòng bị xoá thành công
     }
+
+    // Lấy tất cả group_parts theo group_id
+    public function getGroupPartsByGroupId($groupId)
+    {
+        return GroupPart::where('group_id', $groupId)->get();
+    }
 }

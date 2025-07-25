@@ -5,15 +5,27 @@ namespace App\Services;
 use App\Repositories\GroupRepository;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\GroupPartRepository;
+use App\Repositories\VersionRepository;
+use App\Repositories\AdditionalFieldRepository;
 use App\Models\Group;
 
 class GroupService
 {
     protected GroupRepository $groupRepository;
+    protected $groupPartRepository;
+    protected $additionalFieldRepository;
+    protected $versionRepository;
 
-    public function __construct(GroupRepository $groupRepository)
-    {
-        $this->groupRepository = $groupRepository;
+    public function __construct(
+        GroupRepository $groupRepository,
+        GroupPartRepository $groupPartRepository,
+        VersionRepository $versionRepository,
+        AdditionalFieldRepository $additionalFieldRepository
+    ) {
+        $this->groupPartRepository = $groupPartRepository;
+        $this->versionRepository = $versionRepository;
+        $this->additionalFieldRepository = $additionalFieldRepository;
     }
 
     public function editGroup(array $input): Group
@@ -53,5 +65,23 @@ class GroupService
         }
 
         return $this->groupRepository->createGroup($input);
+    }
+
+    public function getAdditionalFieldsFromGroup($groupId)
+    {
+        // $groupParts = $this->groupPartRepository->getGroupPartsByGroupId($groupId);
+        // if ($groupParts->isEmpty()) {
+        //     throw new \Exception('No group parts found for this group.');
+        // }
+
+        // $versionIds = $groupParts->pluck('version_id')->unique();
+        // if ($versionIds->isEmpty()) {
+        //     throw new \Exception('No versions found for this group.');
+        // }
+        // $additionalFields = $this->additionalFieldRepository->getByVersionId($versionIds);
+        // if ($additionalFields->isEmpty()) {
+        //     throw new \Exception('No additional fields found for this group.');
+        // }
+        // return $additionalFields;
     }
 }
