@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateCodeBuilderRequest extends FormRequest
+class UpdateCodeBuilderRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,13 +22,15 @@ class CreateCodeBuilderRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'id' => 'required|exists:codebuilder,id',
             'name' => 'string|max:255',
             'rule' => 'json',
             // 'rule.*.name' => 'required|string|max:255',
             // 'rule.*.field' => 'required|string|max:255',
             // 'rule.*.value' => 'required|string|max:255',
-            'version_id' => 'required|exists:versions,id',
+            // 'version_id' => 'required|exists:versions,id',
             'is_default' => 'boolean',
+
         ];
     }
 }

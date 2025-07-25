@@ -237,7 +237,7 @@ type Codebuilder {
     id: ID!
     version_id: ID!
     name: String
-    rule: JSON!
+    rule: JSON
     created_at: DateTime
     updated_at: DateTime
 
@@ -253,6 +253,14 @@ extend type Mutation {
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@create"
         )
+    updateCodebuilder(input: UpdateCodebuilderInput!): Codebuilder
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@update"
+        )
+    deleteCodebuilder(id: ID!): Boolean
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@delete"
+        )
 }
 
 input CreateCodebuilderInput {
@@ -262,6 +270,12 @@ input CreateCodebuilderInput {
     is_default: Boolean = false
 }
 
+input UpdateCodebuilderInput {
+    id: ID!
+    rule: JSON
+    name: String
+    is_default: Boolean
+}
 
 # ----------------------------------------------------------------------------------------------
 

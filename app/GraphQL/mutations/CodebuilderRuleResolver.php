@@ -19,6 +19,10 @@ class CodebuilderRuleResolver
 
     public function update($_, array $args)
     {
-
+        return $this->codeBuilderService->update($args['input']);
+    }
+    public function delete($_, array $args)
+    {
+        return $this->codeBuilderService->delete($args['id']);
     }
 }

@@ -14,4 +14,25 @@ class CodeBuilderRepository
     {
         return Codebuilder::create($data);
     }
+    
+    public function update($id, array $data)
+    {
+        $codeBuilder = Codebuilder::findOrFail($id);
+        $codeBuilder->update($data);
+        return $codeBuilder;
+    }
+
+    public function delete($id)
+    {
+        $codeBuilder = $this->findById($id);
+        if (!$codeBuilder) {
+            throw new \Exception("CodeBuilder not found");
+        }
+        return $codeBuilder->delete();
+    }
+
+    public function findById($id)
+    {
+        return Codebuilder::find($id);
+    }
 }
