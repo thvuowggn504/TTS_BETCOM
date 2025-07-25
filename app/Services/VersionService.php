@@ -8,15 +8,22 @@ use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\VersionRepository;
+use App\Repositories\RevisionRepository;
 
 class VersionService
 {
     protected $partRepository;
     protected $versionRepository;
+    protected $revisionRepository;
 
-    public function __construct(PartRepository $partRepository)
+    public function __construct(PartRepository $partRepository, 
+    VersionRepository $versionRepository, 
+    RevisionRepository $revisionRepository)
     {
+        $this->versionRepository = $versionRepository;
         $this->partRepository = $partRepository;
+        $this->revisionRepository = $revisionRepository;
     }
 
     /**
@@ -142,5 +149,20 @@ class VersionService
         }
 
         return $version;
+    }
+
+    public function updateVersion($versionId, array $data)
+    {
+        $version = $this->versionRepository->findById($versionId);
+        if (!$version) {
+            throw new \Exception('Version not found');
+        }
+
+        $this->revisionRepository->updateRevision($version->revision_id, [
+            'updated_at' => now(),
+            'created_by' => $data['created_by'] ?? 2,
+        ]);
+
+        return $this->versionRepository->update($versionId, $data);
     }
 }

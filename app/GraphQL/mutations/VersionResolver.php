@@ -29,4 +29,16 @@ class VersionResolver
             $args['version_code']
         );
     }
+
+    public function updateVersion($_, array $args)
+    {
+        $input = $args['input'];
+        return $this->versionService->updateVersion($input['id'], [
+            'name' => $input['name'],
+            // 'code' => $input['code'],
+            // 'description' => $input['description'],
+            // 'status' => $input['status'],
+            // 'created_by' => $input['created_by'] ?? 2, // ID mặc định của người thực hiện
+        ]);
+    }
 }
