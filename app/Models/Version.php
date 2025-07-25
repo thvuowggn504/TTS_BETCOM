@@ -57,4 +57,9 @@ class Version extends Model
     {
         return $this->hasMany(AdditionalField::class);
     }
+
+    public function part()
+    {
+        return $this->revision->part ?? null;
+    }
 }

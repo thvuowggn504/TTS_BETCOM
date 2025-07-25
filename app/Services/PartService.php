@@ -18,12 +18,17 @@ class PartService
     protected $partRepository;
     protected $versionRepository;
     protected $revisionRepository;
+    protected $codeBuilderService;
 
-    public function __construct(PartRepository $partRepository, VersionRepository $versionRepository, RevisionRepository $revisionRepository)
+    public function __construct(PartRepository $partRepository, 
+    VersionRepository $versionRepository, 
+    RevisionRepository $revisionRepository,
+    CodeBuilderService $codeBuilderService)
     {
         $this->partRepository = $partRepository;
         $this->versionRepository = $versionRepository;
         $this->revisionRepository = $revisionRepository;
+        $this->codeBuilderService = $codeBuilderService;
     }
 
     /**
@@ -96,6 +101,12 @@ class PartService
                     'name' => 'Default Group',
                     'version_id' => $version->id,
                     'is_optional' => false,
+                ]);
+                $this->codeBuilderService->create([
+                    'name' => 'unnamed code pattern',
+                    'rule' => null,
+                    'version_id' => $version->id,
+                    'is_default' => true,
                 ]);
             }
 

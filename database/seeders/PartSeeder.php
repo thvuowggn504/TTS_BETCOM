@@ -26,7 +26,7 @@ class PartSeeder extends Seeder
         $versionCounter = 1;
         $now = now(); // Carbon instance
 
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 6; $i++) {
 
             $type_id = rand(1, 6);
             // Tạo Part
@@ -79,6 +79,11 @@ class PartSeeder extends Seeder
                     // Tăng thời gian mỗi lần thêm version
                     $versionTime = $revisionTime->copy()->addSeconds($v);
                     $enableAssemblyGroups = $type_id == 5? true : false;
+                    // Nếu là version cuối cùng, bật nhóm lắp ráp và đặt type_id là luminaire
+                    if ($v == $versionCount) {
+                        $enableAssemblyGroups = true; // Luôn bật nhóm lắp ráp cho version cuối cùng
+                        $type_id = 5; // Đặt type_id là luminaire 
+                    }
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
                         'version_code' => "1.$v",
@@ -103,6 +108,11 @@ class PartSeeder extends Seeder
                             'name' => "Default Group",
                             'assembler_id' => $partId,
                             'version_id' => $versionId,
+                        ]);
+                        DB::table('codebuilder')->insert([
+                            'name' => "Seeder Code Pattern",
+                            'version_id' => $versionId,
+                            'is_default' => true,
                         ]);
                     }
                 }

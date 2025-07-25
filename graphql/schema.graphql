@@ -69,6 +69,7 @@ type AdditionalField {
     updated_at: DateTime
 
     version: Version @belongsTo
+    part: Part @method(name: "part")
 }
 
 input GetVersionByVersionCodeInput {
@@ -120,12 +121,12 @@ input CreatePartInput {
     addToGroup: Boolean = false
 }
 
-input AdditionalFieldInput {
-    name: String!
-    value: String!
-    data_type: DataTypeEnum = STRING
-    type_group: TypeGroupEnum = STRING
-}
+# input AdditionalFieldInput {
+#     name: String!
+#     value: String!
+#     data_type: DataTypeEnum = STRING
+#     type_group: TypeGroupEnum = STRING
+# }
 
 input AdditionalFieldInput {
     name: String!
@@ -216,8 +217,8 @@ extend type Query {
         @field(
             resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId"
         )
-    # getAdditionalFieldsFromGroup(groupId: ID!): [AdditionalField]
-    #     @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup")
+    getAdditionalFieldsFromGroup(groupId: ID!): [AdditionalField]
+        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup")
 }
 
 input CreateGroupPartInput {
@@ -230,51 +231,53 @@ extend type Mutation {
         @field(resolver: "App\\GraphQL\\Mutations\\GroupPartResolver@create")
 }
 
-# ----------------------------------------------------------------------------------------------
-
 scalar JSON @scalar(class: "MLL\\GraphQLScalars\\JSON")
 
-type CodebuilderRule {
+type Codebuilder {
     id: ID!
     version_id: ID!
-    rule: JSON!
+    name: String
+    rule: JSON
     created_at: DateTime
     updated_at: DateTime
 
     version: Version @belongsTo
 }
 
-extend type Query {
-    codebuilderRules: [CodebuilderRule!]! @all
-    codebuilderRule(id: ID!): CodebuilderRule @find
-}
+# extend type Query {
+
+# }
 
 extend type Mutation {
-    createCodebuilderRule(input: CreateCodebuilderRuleInput!): CodebuilderRule
+    createCodebuilder(input: CreateCodebuilderInput!): Codebuilder
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@create"
         )
-
-    updateCodebuilderRule(
-        id: ID!
-        input: UpdateCodebuilderRuleInput!
-    ): CodebuilderRule
+    updateCodebuilder(input: UpdateCodebuilderInput!): Codebuilder
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@update"
         )
-
-    deleteCodebuilderRule(id: ID!): Boolean
-        @delete(model: "App\\Models\\Codebuilder")
+    deleteCodebuilder(id: ID!): Boolean
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@delete"
+        )
 }
 
-input CreateCodebuilderRuleInput {
-    version_id: ID! @rules(apply: ["required", "exists:versions,id"])
-    rule: JSON! @rules(apply: ["required", "array"])
+input CreateCodebuilderInput {
+    version_id: ID! 
+    rule: JSON
+    name: String
+    is_default: Boolean = false
 }
 
-input UpdateCodebuilderRuleInput {
-    rule: JSON! @rules(apply: ["required", "array"])
+input UpdateCodebuilderInput {
+    id: ID!
+    rule: JSON
+    name: String
+    is_default: Boolean
 }
+
+# ----------------------------------------------------------------------------------------------
 
 input UpdatePartInput {
     version_id: ID!

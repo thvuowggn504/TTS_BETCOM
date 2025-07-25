@@ -2,27 +2,27 @@
 
 namespace App\GraphQL\Mutations;
 
-use App\Models\CodebuilderRule;
+use App\Models\Codebuilder;
+use App\Services\CodeBuilderService;
 
 class CodebuilderRuleResolver
 {
+    protected $codeBuilderService;
+    public function __construct(CodeBuilderService $codeBuilderService)
+    {
+        $this->codeBuilderService = $codeBuilderService;
+    }
     public function create($_, array $args)
     {
-        $input = $args['input'];
-
-        return CodebuilderRule::create([
-            'version_id' => $input['version_id'],
-            'rule' => json_encode($input['rule']),
-        ]);
+        return $this->codeBuilderService->create($args['input']);
     }
 
     public function update($_, array $args)
     {
-        $rule = CodebuilderRule::findOrFail($args['id']);
-        $rule->update([
-            'rule' => json_encode($args['input']['rule']),
-        ]);
-
-        return $rule;
+        return $this->codeBuilderService->update($args['input']);
+    }
+    public function delete($_, array $args)
+    {
+        return $this->codeBuilderService->delete($args['id']);
     }
 }
