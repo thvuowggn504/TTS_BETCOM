@@ -50,7 +50,7 @@ class Version extends Model
 
     public function codebuilderRules()
     {
-        return $this->hasMany(CodebuilderRule::class);
+        return $this->hasMany(Codebuilder::class);
     }
 
     public function additionalFields()

@@ -69,4 +69,11 @@ class VersionRepository
             })
             ->first();
     }
+
+    public function update($versionId, array $data)
+    {
+        $version = Version::findOrFail($versionId);
+        $version->update($data);
+        return $version;
+    }
 }
