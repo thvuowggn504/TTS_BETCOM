@@ -13,9 +13,4 @@ class GroupPartQuery
     {
         $this->groupPartService = $groupPartService;
     }
-
-    // public function getAdditionalFieldsFromGroup($_, array $args)
-    // {
-    //     return $this->groupPartService->getAdditionalFieldsFromGroup($args['groupId']);
-    // }
 }
