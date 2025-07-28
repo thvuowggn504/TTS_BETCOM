@@ -129,7 +129,8 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('version_id');
             $table->string('name', 100);
-            $table->json('rule')->nullable();
+            $table->text('rule')->nullable();
+            $table->json('rule_data')->nullable();
             $table->boolean('is_default')->default();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();

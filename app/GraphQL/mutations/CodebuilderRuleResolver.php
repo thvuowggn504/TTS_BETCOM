@@ -25,4 +25,13 @@ class CodebuilderRuleResolver
     {
         return $this->codeBuilderService->delete($args['id']);
     }
+
+    public function storeRule($_, array $args){
+        return $this->codeBuilderService->storeRule($args['input']);
+    }
+
+    public function addPropertyToCodebuilder($_, array $args)
+    {
+        return $this->codeBuilderService->addPropertyToCodebuilder($args['input']);
+    }
 }
