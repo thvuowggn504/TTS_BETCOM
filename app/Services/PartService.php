@@ -20,11 +20,12 @@ class PartService
     protected $revisionRepository;
     protected $codeBuilderService;
 
-    public function __construct(PartRepository $partRepository, 
-    VersionRepository $versionRepository, 
-    RevisionRepository $revisionRepository,
-    CodeBuilderService $codeBuilderService)
-    {
+    public function __construct(
+        PartRepository $partRepository,
+        VersionRepository $versionRepository,
+        RevisionRepository $revisionRepository,
+        CodeBuilderService $codeBuilderService
+    ) {
         $this->partRepository = $partRepository;
         $this->versionRepository = $versionRepository;
         $this->revisionRepository = $revisionRepository;
@@ -128,30 +129,19 @@ class PartService
     }
 
     /**
-     * Cập nhật Part bằng cách tạo một version mới từ version hiện tại
-     */
-    /**
      * Cập nhật Part bằng cách tạo một version mới từ version hiện tại.
      * Nếu version hiện tại là Published thì sẽ clone sang Draft trước khi cập nhật.
      */
     public function updatePart(array $input)
     {
         return DB::transaction(function () use ($input) {
-            // Tạo request giả lập để validate
-            $request = new EditPartRequest();
-            $request->merge($input);
-            $request->setMethod('POST');
-
-            // Validate dữ liệu đầu vào
-            $validator = Validator::make($request->all(), $request->rules());
-            if ($validator->fails()) {
-                throw new \Illuminate\Validation\ValidationException($validator);
+            // Validate
+            if (empty($input['version_id'])) {
+                throw new \Exception('Thiếu version_id!');
             }
 
-            $data = $validator->validated();
-
-            // Lấy version hiện tại từ input
-            $currentVersion = $this->partRepository->getVersionWithRelations($data['version_id']);
+            // Lấy version hiện tại
+            $currentVersion = $this->partRepository->getVersionWithRelations($input['version_id']);
             if (!$currentVersion || !$currentVersion->revision || !$currentVersion->revision->part) {
                 throw new \Exception('Version hoặc các quan hệ liên quan không tồn tại.');
             }
@@ -159,45 +149,44 @@ class PartService
             $revision = $currentVersion->revision;
             $part = $revision->part;
 
-            // Nếu version hiện tại là Published
+            // Nếu version hiện tại là Published, clone hoặc lấy draft để sửa
             if ($currentVersion->status === 'Published') {
-                // Kiểm tra xem đã có version Draft nào trong cùng revision chưa
-                $existingDraft = $revision->versions()
-                    ->where('status', 'Draft')
-                    ->latest('created_at')
-                    ->first();
+                $existingDraft = $revision->versions()->where('status', 'Draft')->latest()->first();
 
                 if ($existingDraft) {
-                    // Nếu đã có Draft → sử dụng version đó để update
                     $currentVersion = $existingDraft;
                 } else {
-                    // Nếu chưa có Draft → tạo bản sao và tiếp tục update bản sao
                     $currentVersion = $this->clonePublishedVersion($currentVersion->id);
                 }
             }
 
-            // Nếu đang là Draft thì update trực tiếp
-            if (!empty($data['code']) && $data['code'] !== $currentVersion->code) {
-                // Kiểm tra code bị trùng
-                if ($this->partRepository->partExistsByCode($data['code'], $part->id)) {
-                    throw new \Exception('Mã code đã tồn tại!');
+            $updates = [];
+
+            // Các field cơ bản
+            foreach (['name', 'code', 'description', 'type_id'] as $field) {
+                if (array_key_exists($field, $input)) {
+                    // Trường hợp riêng: validate trùng code
+                    if ($field === 'code' && $input['code'] !== $currentVersion->code) {
+                        if ($this->partRepository->partExistsByCode($input['code'], $part->id)) {
+                            throw new \Exception('Mã code đã tồn tại!');
+                        }
+                    }
+
+                    $updates[$field] = $input[$field];
                 }
             }
 
-            // Cập nhật các trường cơ bản
-            $this->partRepository->updateVersion($currentVersion->id, [
-                'name'        => $data['name'] ?? $currentVersion->name,
-                'code'        => $data['code'] ?? $currentVersion->code,
-                'description' => $data['description'] ?? $currentVersion->description,
-                'type_id'     => $data['type_id'] ?? $currentVersion->type_id,
-                'updated_at'  => now(),
-            ]);
+            // Nếu có field cần update
+            if (!empty($updates)) {
+                $updates['updated_at'] = now();
+                $this->partRepository->updateVersion($currentVersion->id, $updates);
+            }
 
-            // Xử lý additional_fields
-            $inputFieldNames = [];
+            // Additional fields
+            if (array_key_exists('additional_fields', $input)) {
+                $inputFieldNames = [];
 
-            if (!empty($data['additional_fields'])) {
-                foreach ($data['additional_fields'] as $field) {
+                foreach ($input['additional_fields'] as $field) {
                     $inputFieldNames[] = $field['name'];
 
                     $this->partRepository->updateOrCreateAdditionalField([
@@ -210,17 +199,17 @@ class PartService
                         'updated_at' => now(),
                     ]);
                 }
+
+                // Xoá các additional_fields không còn trong input
+                $existingFields = $currentVersion->additionalFields->pluck('name')->toArray();
+                $fieldsToDelete = array_diff($existingFields, $inputFieldNames);
+
+                if (!empty($fieldsToDelete)) {
+                    $this->partRepository->deleteAdditionalFieldsByNames($currentVersion->id, $fieldsToDelete);
+                }
             }
 
-            // Xoá các additional_fields không còn trong input
-            $existingFields = $currentVersion->additionalFields->pluck('name')->toArray();
-            $fieldsToDelete = array_diff($existingFields, $inputFieldNames);
-
-            if (!empty($fieldsToDelete)) {
-                $this->partRepository->deleteAdditionalFieldsByNames($currentVersion->id, $fieldsToDelete);
-            }
-
-            return $currentVersion;
+            return $currentVersion->refresh();
         });
     }
 
