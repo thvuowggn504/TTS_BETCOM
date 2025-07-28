@@ -16,6 +16,7 @@ use App\Repositories\GroupPartRepository;
 use App\Repositories\AdditionalFieldRepository;
 use COM;
 use Illuminate\Support\Collection;
+use PhpParser\Node\Stmt\Continue_;
 
 class GroupPartService
 {
@@ -38,17 +39,26 @@ class GroupPartService
         $groupParts = [];
 
         // Lấy toàn bộ groupId và partId duy nhất từ inputs
-        $groupId = collect($inputs)->pluck('group_id')->unique();
-        $partId = collect($inputs)->pluck('part_id')->unique();
+        $groupIds = collect($inputs)->pluck('group_id')->unique();
+        if ($groupIds->isEmpty()) {
+            throw new \Exception('No group IDs provided.');
+        }
+        $partIds = collect($inputs)->pluck('part_id')->unique();
+        if ($partIds->isEmpty()) {
+            throw new \Exception('No part IDs provided.');
+        }
 
         // Load toàn bộ group trước (tránh gọi trong vòng lặp)
-        $groups = Group::whereIn('id', $groupId)->get()->keyBy('id');
+        $groups = Group::whereIn('id', $groupIds)->get()->keyBy('id');
 
         // Load tất cả versionId mới nhất của part 1 lần
-        $latestVersionIds = $this->groupPartRepository->getLatestVersionId($partId);
+        $latestVersionIds = $this->groupPartRepository->getLatestVersionId($partIds->toArray());
+        if ($latestVersionIds->isEmpty()) {
+            throw new \Exception('No latest versions or parts found.');
+        }
 
         // Load tất cả groupPart tồn tại để kiểm tra trùng
-        $existingGroupParts = $this->groupPartRepository->getExistingGroupParts($groupId, $partId);
+        $existingGroupParts = $this->groupPartRepository->exists($groupIds, $partIds);
 
         foreach ($inputs as $input) {
             try {
@@ -58,19 +68,23 @@ class GroupPartService
 
                 $validator = Validator::make($request->all(), $request->rules());
                 if ($validator->fails()) continue;
+                // throw new \Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
 
                 $data = $validator->validated();
 
                 $group = $groups[$data['group_id']] ?? null;
                 if (!$group || $group->part_id == $data['part_id']) continue;
+                // throw new \Exception("Invalid group or part association.");
 
                 // Kiểm tra trùng
                 $key = $data['group_id'] . '|' . $data['part_id'];
                 if (isset($existingGroupParts[$key])) continue;
+                // throw new \Exception("Group part already exists for group ID {$data['group_id']} and part ID {$data['part_id']}.");
 
                 // Lấy version_id từ mảng
                 $versionId = $latestVersionIds[$data['part_id']] ?? null;
                 if (!$versionId) continue;
+                // throw new \Exception("No latest version found for part ID {$data['part_id']}.");
 
                 // Tạo group part
                 $groupPart = $this->groupPartRepository->createGroupPart([
@@ -82,13 +96,12 @@ class GroupPartService
 
                 $groupParts[] = $groupPart;
             } catch (\Exception $e) {
-                continue;
+                // throw new \Exception("Error creating group part: " . $e->getMessage());
             }
         }
 
         return $groupParts;
     }
-
 
     // Xoá toàn bộ group theo ID (có sử dụng transaction)
     public function deleteGroup(int $id): bool
