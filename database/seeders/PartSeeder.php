@@ -87,10 +87,10 @@ class PartSeeder extends Seeder
                     $versionId = DB::table('versions')->insertGetId([
                         'revision_id' => $revisionId,
                         'version_code' => "1.$v",
-                        'name' => "Version $versionCounter",
-                        'code' => "V-$versionCounter",
+                        'name' => "Part $i",
+                        'code' => "PART-$i",
                         'based_upon_version_id' => $latestVersionId,
-                        'description' => "Description for version $versionCounter",
+                        'description' => "Description for Part $i",
                         'type_id' => $type_id,
                         'status' => $status,
                         'enable_assembly_groups' => $enableAssemblyGroups,

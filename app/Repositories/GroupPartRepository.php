@@ -21,10 +21,10 @@ class GroupPartRepository
     {
         // Tìm group_part theo ID, nếu không có sẽ throw ModelNotFoundException
         $groupPart = GroupPart::findOrFail($id);
-        
+
         // Cập nhật dữ liệu
         $groupPart->update($data);
-        
+
         // Trả về bản ghi sau khi cập nhật
         return $groupPart;
     }
@@ -34,37 +34,38 @@ class GroupPartRepository
     {
         // Tìm group_part theo ID, nếu không có sẽ throw ModelNotFoundException
         $groupPart = GroupPart::findOrFail($id);
-        
+
         // Thực hiện xoá
         return $groupPart->delete();
     }
 
-    // Lấy version_id mới nhất có trạng thái Published cho một Part
-    public function getLatestVersionId($partId)
+    // Trả về version_id mới nhất có Published status theo revision.updated_at
+    public function getLatestVersionId(array $partId)
     {
-        // Lấy revision mới nhất theo updated_at
-        $latestRevision = Revision::where('part_id', $partId)
-            ->orderBy('updated_at', 'desc')
-            ->first();
+        $latestVersions = Version::select('versions.id', 'revisions.part_id')
+            ->join('revisions', 'versions.revision_id', '=', 'revisions.id')
+            ->whereIn('revisions.part_id', $partId)
+            ->where('versions.status', 'Published')
+            ->orderByDesc('revisions.updated_at')
+            ->get()
+            ->unique('revisions.part_id')
+            ->pluck('id', 'part_id');
 
-        if (!$latestRevision) {
-            // Không tìm thấy revision nào thì throw lỗi
-            throw new \Exception('No revisions found for part ID ' . $partId);
-        }
-
-        // Tìm version có trạng thái Published thuộc revision đó
-        $latestVersion = Version::where('revision_id', $latestRevision->id)
-            ->where('status', 'Published')
-            ->first();
-
-        if ($latestVersion) {
-            // Trả về version_id
-            return $latestVersion->id;
-        }
-
-        // Không tìm thấy version Published thì throw lỗi
-        throw new \Exception('No published version found for part ID ' . $partId);
+        // var_dump($latestVersions->toArray());
+        return $latestVersions;
     }
+
+    // // Lấy tất cả group-part đã tồn tại (map để check nhanh)
+    // public function getExistingGroupParts($groupId, $partId)
+    // {
+    //     return GroupPart::whereIn('group_id', $groupId)
+    //         ->whereIn('part_id', $partId)
+    //         ->get()
+    //         ->mapWithKeys(fn($item) => [
+    //             $item->group_id . '|' . $item->part_id => true
+    //         ])
+    //         ->toArray();
+    // }
 
     // Kiểm tra tồn tại bản ghi group_part với group_id và part_id
     public function exists($groupId, $partId)

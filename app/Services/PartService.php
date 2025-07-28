@@ -354,45 +354,46 @@ class PartService
 
     public function getPublishedPartsForGroup($groupId)
     {
-        // Lấy version_id đã được sử dụng trong group_part của group này
         $usedVersionIds = DB::table('group_parts')
             ->where('group_id', $groupId)
             ->pluck('version_id')
             ->toArray();
 
         $group = Group::findOrFail($groupId);
-        $excludePartId = $group->assembler_id; // Lấy part cha (assembler) của group
+        $excludePartId = $group->assembler_id;
 
-        return Part::with(['revisions' => function ($query) {
-            $query->orderByDesc('updated_at')->limit(1);
-        }, 'revisions.versions' => function ($query) {
-            $query->orderByDesc('created_at');
-        }])
-            ->where('id', '!=', $excludePartId) // loại part cha ra 
-            ->get()
-            ->filter(function ($part) use ($usedVersionIds) {
-                $revision = $part->revisions->first();
-                if (!$revision) return false;
-                // Kiểm tra revision có version nào Published không và không nằm trong danh sách trong group
-                return $revision->versions->contains(function ($version) use ($usedVersionIds) {
-                    return $version->status === 'Published' && !in_array($version->id, $usedVersionIds);
-                });
-            })
-            ->map(function ($part) use ($usedVersionIds) {
-                $revision = $part->revisions->first();
+        // Lấy tất cả part, ngoại trừ part cha (assembler)
+        $parts = Part::where('id', '!=', $excludePartId)
+            ->with(['revisions' => function ($q) {
+                $q->orderByDesc('updated_at')->limit(1);
+            }, 'revisions.versions.additionalFields']) // eager load thêm nếu cần
+            ->get();
 
-                $version = $revision->versions
-                    ->filter(fn($v) => $v->status === 'Published' && !in_array($v->id, $usedVersionIds))
-                    ->first()
-                    ?? $revision->versions->where('status', 'Archived')->sortByDesc('created_at')->first()
-                    ?? $revision->versions->firstWhere('status', 'Draft');
+        // Lọc và chọn version phù hợp
+        return $parts->filter(function ($part) use ($usedVersionIds) {
+            $revision = $part->revisions->first();
+            if (!$revision) return false;
 
-                $part->selected_version = $version;
-                $part->additional_fields = $version?->additionalFields ?? [];
-                unset($part->revisions);
-                return $part;
-            })
-            ->values();
+            // Kiểm tra có version Published chưa dùng
+            return $revision->versions->contains(
+                fn($v) =>
+                $v->status === 'Published' && !in_array($v->id, $usedVersionIds)
+            );
+        })->map(function ($part) use ($usedVersionIds) {
+            $revision = $part->revisions->first();
+
+            // Ưu tiên version Published chưa dùng
+            $version = $revision->versions
+                ->filter(fn($v) => $v->status === 'Published' && !in_array($v->id, $usedVersionIds))
+                ->first()
+                ?? $revision->versions->where('status', 'Archived')->sortByDesc('created_at')->first()
+                ?? $revision->versions->firstWhere('status', 'Draft');
+
+            $part->selected_version = $version;
+            $part->additional_fields = $version?->additionalFields ?? [];
+            unset($part->revisions);
+            return $part;
+        })->values();
     }
 
 
