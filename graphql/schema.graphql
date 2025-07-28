@@ -220,7 +220,9 @@ extend type Query {
             resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId"
         )
     getAdditionalFieldsFromGroup(groupId: ID!): [AdditionalField]
-        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup")
+        @field(
+            resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup"
+        )
 }
 
 input CreateGroupPartInput {
@@ -268,7 +270,7 @@ extend type Mutation {
 }
 
 input CreateCodebuilderInput {
-    version_id: ID! 
+    version_id: ID!
     rule: JSON
     name: String
     is_default: Boolean = false
@@ -314,6 +316,18 @@ extend type Query {
     ): Version
         @field(
             resolver: "App\\GraphQL\\Mutations\\VersionResolver@getVersionByCode"
+        )
+}
+
+input VersionFiltersInput {
+    enable_assembly_groups: Boolean
+    status: String
+    revision_id: ID
+}
+extend type Query {
+    searchVersionsAssembler(filter: VersionFiltersInput): [Version!]!
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\VersionResolver@searchVersionsAssembler"
         )
 }
 

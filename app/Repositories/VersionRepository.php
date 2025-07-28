@@ -76,4 +76,27 @@ class VersionRepository
         $version->update($data);
         return $version;
     }
+
+    /**
+     * Tìm kiếm versions theo enable_assembly_groups (true/false)
+     */
+    public function searchVersionsByAssembler(array $fillters =[])
+    {
+        $query = Version::query();
+
+        //Tìm kiếm theo assambler được chỉ định
+        if (isset($fillters['enable_assembly_groups'])) {
+            $query->where('enable_assembly_groups', $fillters['enable_assembly_groups']);
+        }
+
+        if (isset($fillters['revision_id'])) {
+            $query->where('revision_id', $fillters['revision_id']);
+        }
+
+        if (isset($fillters['status'])) {
+            $query->where('status', $fillters['status']);
+        }
+
+        return $query->get();
+    }
 }

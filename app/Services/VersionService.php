@@ -165,4 +165,11 @@ class VersionService
 
         return $this->versionRepository->update($versionId, $data);
     }
+
+    /**
+     * Tìm kiếm version theo enable_assembly_groups (true/false)
+     */
+    public function searchVersionsAssembler(array $filters) {
+        return $this -> versionRepository -> searchVersionsByAssembler($filters);
+    }
 }
