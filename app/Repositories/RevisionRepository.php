@@ -21,32 +21,4 @@ class RevisionRepository
         $baseRevision->update($data);
         return $baseRevision;
     }
-
-    public function createRevisionCode($oldRevision)
-    {
-        $part = Part::findOrFail($oldRevision->part_id);
-        if (!$part) {
-            throw new \Exception('Part not found for creating revision code.');
-        }
-
-        // Lấy revision mới nhất của part bằng created_at
-        $latestRevision = Revision::where('part_id', $part->id)
-            ->orderBy('created_at', 'desc')
-            ->first();
-        if ($latestRevision) {
-            $latestRevisionCode = $latestRevision->revision_code;
-            // Tạo mã revision_code mới dựa trên mã cũ
-            $parts = explode('.', $latestRevisionCode);
-            $major = (int) $parts[0];
-            $major++;
-            $minor = 0;
-            return $major . '.' . $minor;
-        }
-        return '2.0';
-    }
-
-    public function sortByDesc($field)
-    {
-        return Revision::orderBy($field, 'desc')->get();
-    }
 }

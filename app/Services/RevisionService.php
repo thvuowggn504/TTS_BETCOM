@@ -46,7 +46,7 @@ class RevisionService
             // Tạo revision mới
             $revisionData = [
                 'part_id' => $revision->part_id,
-                'revision_code' => $this->revisionRepository->createRevisionCode($revision),
+                'revision_code' => $this->createRevisionCode($revision),
                 'latest_version' => null,
                 'created_by' => 1,
                 'created_at' => now(),
@@ -82,5 +82,33 @@ class RevisionService
 
             return $newRevision;
         });
+    }
+
+    public function createRevisionCode($oldRevision)
+    {
+        $part = Part::findOrFail($oldRevision->part_id);
+        if (!$part) {
+            throw new \Exception('Part not found for creating revision code.');
+        }
+
+        // Lấy revision mới nhất của part bằng created_at
+        $latestRevision = Revision::where('part_id', $part->id)
+            ->orderBy('id', 'desc')
+            ->first();
+        if ($latestRevision) {
+            $latestRevisionCode = $latestRevision->revision_code;
+            // Tạo mã revision_code mới dựa trên mã cũ
+            $parts = explode('.', $latestRevisionCode);
+            $major = (int) $parts[0];
+            $major++;
+            $minor = 0;
+            return $major . '.' . $minor;
+        }
+        return '2.0';
+    }
+
+    public function sortByDesc($field)
+    {
+        return Revision::orderBy($field, 'desc')->get();
     }
 }
