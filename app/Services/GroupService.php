@@ -23,6 +23,7 @@ class GroupService
         VersionRepository $versionRepository,
         AdditionalFieldRepository $additionalFieldRepository
     ) {
+        $this->groupRepository = $groupRepository;
         $this->groupPartRepository = $groupPartRepository;
         $this->versionRepository = $versionRepository;
         $this->additionalFieldRepository = $additionalFieldRepository;
