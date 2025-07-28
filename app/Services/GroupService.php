@@ -67,13 +67,30 @@ class GroupService
         return $this->groupRepository->createGroup($input);
     }
 
+    // public function getAdditionalFieldsFromGroup($groupId)
+    // {
+    //     $groupParts = $this->groupPartRepository->getGroupPartsByGroupId($groupId);
+    //     if ($groupParts->isEmpty()) {
+    //         throw new \Exception('No group parts found for this group.');
+    //     }
+
+    //     $versionIds = $groupParts->pluck('version_id')->unique();
+    //     if ($versionIds->isEmpty()) {
+    //         throw new \Exception('No versions found for this group.');
+    //     }
+    //     $additionalFields = $this->additionalFieldRepository->getByVersionId($versionIds);
+    //     if ($additionalFields->isEmpty()) {
+    //         throw new \Exception('No additional fields found for this group.');
+    //     }
+    //     return $additionalFields;
+    // }
+
     public function getAdditionalFieldsFromGroup($groupId)
     {
         $groupParts = $this->groupPartRepository->getGroupPartsByGroupId($groupId);
         if ($groupParts->isEmpty()) {
             throw new \Exception('No group parts found for this group.');
         }
-
         $versionIds = $groupParts->pluck('version_id')->unique();
         if ($versionIds->isEmpty()) {
             throw new \Exception('No versions found for this group.');
@@ -82,6 +99,8 @@ class GroupService
         if ($additionalFields->isEmpty()) {
             throw new \Exception('No additional fields found for this group.');
         }
-        return $additionalFields;
+        $uniqueAdditionalFields = $additionalFields->unique('name')->values();
+
+        return $uniqueAdditionalFields;
     }
 }
