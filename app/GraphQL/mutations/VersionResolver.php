@@ -41,4 +41,10 @@ class VersionResolver
             // 'created_by' => $input['created_by'] ?? 2, // ID mặc định của người thực hiện
         ]);
     }
+
+    public function searchVersionsAssembler($_, array $args)
+    {
+        $filters = $args['filter'] ?? [];
+        return $this->versionService->searchVersionsAssembler($filters);
+    }
 }
