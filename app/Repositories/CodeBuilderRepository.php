@@ -35,4 +35,8 @@ class CodeBuilderRepository
     {
         return Codebuilder::find($id);
     }
+
+    public function find($id) {
+        return Codebuilder::find($id);
+    }
 }

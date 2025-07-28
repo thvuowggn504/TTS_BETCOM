@@ -23,7 +23,7 @@ class StoreRuleRequest extends FormRequest
     {
         return [
             'id' => 'required|integer|exists:codebuilder,id',
-            'rule' => 'required|text',
+            'rule' => 'required|string|max:255',
             'rule_data' => 'nullable|json',
         ];
     }

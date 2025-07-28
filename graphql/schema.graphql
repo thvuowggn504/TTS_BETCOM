@@ -266,7 +266,7 @@ extend type Mutation {
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@storeRule"
         )
-    addPropertyToCodebuilder(input: ): Codebuilder
+    addPropertyToCodebuilder(input: AddPropertyToCodebuilderInput!): Codebuilder
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@addPropertyToCodebuilder"
         )

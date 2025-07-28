@@ -70,7 +70,7 @@ class CodeBuilderService
         }
 
         return $this->codeBuilderRepository->update($data['id'], [
-            'rule' => $data['rule'], 
+            'rule' => $data['rule'],
             'rule_data' => $data['rule_data'] ?? json_encode(array_map(function ($match) {
                 return [
                     'group_name' => $match[1],
@@ -82,15 +82,35 @@ class CodeBuilderService
 
     public function addPropertyToCodebuilder(array $data)
     {
+        $groupName = str_replace(' ', '_', $data['group_name']);
+        $fieldName = str_replace(' ', '_', $data['field_name']);
+        $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
+
+        // Lấy dữ liệu hiện tại của code builder
+        $current = $this->codeBuilderRepository->find($data['id']);
+
+        // Nếu chưa có rule, khởi tạo rỗng
+        $existingRule = $current->rule ?? '';
+        $existingRuleData = json_decode($current->rule_data, true) ?? [];
+
+        // Nếu placeholder đã tồn tại thì không thêm nữa
+        if (str_contains($existingRule, $newPlaceholder)) {
+            return $current; // Không cần cập nhật nếu đã có
+        }
+
+        // Cập nhật rule mới và rule_data mới
+        $updatedRule = trim($existingRule . $newPlaceholder);
+        $updatedRuleData = array_merge($existingRuleData, [
+            [
+                'group_name' => $groupName,
+                'field_name' => $fieldName,
+            ]
+        ]);
+
         return $this->storeRule([
             'id' => $data['id'],
-            'rule' => $data['rule'],
-            'rule_data' => json_encode([
-                [
-                    'group_name' => $data['group_name'],
-                    'field_name' => $data['field_name'],
-                ]
-            ]),
+            'rule' => $updatedRule,
+            'rule_data' => json_encode($updatedRuleData),
         ]);
     }
 }
