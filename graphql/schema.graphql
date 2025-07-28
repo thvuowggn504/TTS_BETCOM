@@ -84,8 +84,10 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
 
     getVersionByVersionCode(input: GetVersionByVersionCodeInput!): Version
-        @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
-        
+        @field(
+            resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode"
+        )
+
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
 
@@ -233,6 +235,8 @@ extend type Mutation {
 # ----------------------------------------------------------------------------------------------
 
 scalar JSON @scalar(class: "MLL\\GraphQLScalars\\JSON")
+scalar DateTime
+    @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type CodebuilderRule {
     id: ID!
@@ -295,7 +299,8 @@ input EditGroupInput {
     name: String
     type_id: ID
     is_optional: Boolean
-    type: String
+    version_id: ID
+    assembler_id: ID
 }
 
 extend type Query {
