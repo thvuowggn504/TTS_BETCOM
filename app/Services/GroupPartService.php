@@ -23,10 +23,11 @@ class GroupPartService
     protected $additionalFieldRepository;
     protected $versionRepository;
 
-    public function __construct(GroupPartRepository $groupPartRepository,
+    public function __construct(
+        GroupPartRepository $groupPartRepository,
         VersionRepository $versionRepository,
-        AdditionalFieldRepository $additionalFieldRepository)
-    {
+        AdditionalFieldRepository $additionalFieldRepository
+    ) {
         $this->groupPartRepository = $groupPartRepository;
         $this->versionRepository = $versionRepository;
         $this->additionalFieldRepository = $additionalFieldRepository;
@@ -34,41 +35,42 @@ class GroupPartService
 
     public function createGroupPart(array $inputs)
     {
-
         $groupParts = [];
+
+        // Lấy toàn bộ groupId và partId duy nhất từ inputs
+        $groupId = collect($inputs)->pluck('group_id')->unique();
+        $partId = collect($inputs)->pluck('part_id')->unique();
+
+        // Load toàn bộ group trước (tránh gọi trong vòng lặp)
+        $groups = Group::whereIn('id', $groupId)->get()->keyBy('id');
+
+        // Load tất cả versionId mới nhất của part 1 lần
+        $latestVersionIds = $this->groupPartRepository->getLatestVersionId($partId);
+
+        // Load tất cả groupPart tồn tại để kiểm tra trùng
+        $existingGroupParts = $this->groupPartRepository->getExistingGroupParts($groupId, $partId);
 
         foreach ($inputs as $input) {
             try {
-                // Tạo request cho từng phần tử input
                 $request = new CreateGroupPartRequest($input);
                 $request->merge($input);
                 $request->setMethod('POST');
 
-                // Validate input
                 $validator = Validator::make($request->all(), $request->rules());
-                if ($validator->fails()) {
-                    // Bỏ qua phần tử nếu không hợp lệ
-                    continue;
-                }
+                if ($validator->fails()) continue;
 
                 $data = $validator->validated();
 
-                $group = Group::find($data['group_id']);
-                if ($group && $group->part_id == $data['part_id']) {
-                    // Nếu part hiện tại chính là part cha, không thêm
-                    continue;
-                }
+                $group = $groups[$data['group_id']] ?? null;
+                if (!$group || $group->part_id == $data['part_id']) continue;
 
-                // Kiểm tra trùng (group_id + part_id)
-                if ($this->groupPartRepository->exists($data['group_id'], $data['part_id'])) {
-                    continue; // Đã tồn tại, bỏ qua
-                }
+                // Kiểm tra trùng
+                $key = $data['group_id'] . '|' . $data['part_id'];
+                if (isset($existingGroupParts[$key])) continue;
 
-                // Lấy versionId cho part
-                $versionId = $this->groupPartRepository->getLatestVersionId($data['part_id']);
-                if (!$versionId) {
-                    continue; // Không có version hợp lệ, bỏ qua
-                }
+                // Lấy version_id từ mảng
+                $versionId = $latestVersionIds[$data['part_id']] ?? null;
+                if (!$versionId) continue;
 
                 // Tạo group part
                 $groupPart = $this->groupPartRepository->createGroupPart([
@@ -80,13 +82,13 @@ class GroupPartService
 
                 $groupParts[] = $groupPart;
             } catch (\Exception $e) {
-                // Bỏ qua lỗi từng phần tử, không throw
                 continue;
             }
         }
 
         return $groupParts;
     }
+
 
     // Xoá toàn bộ group theo ID (có sử dụng transaction)
     public function deleteGroup(int $id): bool
@@ -109,7 +111,4 @@ class GroupPartService
     {
         return $this->groupPartRepository->deleteGroupPartById($id);
     }
-
-
-
 }

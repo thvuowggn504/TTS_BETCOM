@@ -21,10 +21,10 @@ class GroupPartRepository
     {
         // Tìm group_part theo ID, nếu không có sẽ throw ModelNotFoundException
         $groupPart = GroupPart::findOrFail($id);
-        
+
         // Cập nhật dữ liệu
         $groupPart->update($data);
-        
+
         // Trả về bản ghi sau khi cập nhật
         return $groupPart;
     }
@@ -34,45 +34,44 @@ class GroupPartRepository
     {
         // Tìm group_part theo ID, nếu không có sẽ throw ModelNotFoundException
         $groupPart = GroupPart::findOrFail($id);
-        
+
         // Thực hiện xoá
         return $groupPart->delete();
     }
 
-    // Lấy version_id mới nhất có trạng thái Published cho một Part
+    // Trả về version_id mới nhất có Published status theo revision.updated_at
     public function getLatestVersionId($partId)
     {
-        // Lấy revision mới nhất theo updated_at
-        $latestRevision = Revision::where('part_id', $partId)
-            ->orderBy('updated_at', 'desc')
+        $latestVersion = Version::select('versions.id')
+            ->join('revisions', 'versions.revision_id', '=', 'revisions.id')
+            ->where('revisions.part_id', $partId)
+            ->where('versions.status', 'Published')
+            ->orderByDesc('revisions.updated_at')
+            ->limit(1)
             ->first();
 
-        if (!$latestRevision) {
-            // Không tìm thấy revision nào thì throw lỗi
-            throw new \Exception('No revisions found for part ID ' . $partId);
-        }
-
-        // Tìm version có trạng thái Published thuộc revision đó
-        $latestVersion = Version::where('revision_id', $latestRevision->id)
-            ->where('status', 'Published')
-            ->first();
-
-        if ($latestVersion) {
-            // Trả về version_id
-            return $latestVersion->id;
-        }
-
-        // Không tìm thấy version Published thì throw lỗi
-        throw new \Exception('No published version found for part ID ' . $partId);
+        return $latestVersion?->id; // Trả về null nếu không có
     }
 
-    // Kiểm tra tồn tại bản ghi group_part với group_id và part_id
-    public function exists($groupId, $partId)
+    // Lấy tất cả group-part đã tồn tại (map để check nhanh)
+    public function getExistingGroupParts($groupIds, $partIds)
     {
-        return GroupPart::where('group_id', $groupId)
-            ->where('part_id', $partId)
-            ->exists();
+        return GroupPart::whereIn('group_id', $groupIds)
+            ->whereIn('part_id', $partIds)
+            ->get()
+            ->mapWithKeys(fn($item) => [
+                $item->group_id . '|' . $item->part_id => true
+            ])
+            ->toArray();
     }
+
+    // // Kiểm tra tồn tại bản ghi group_part với group_id và part_id
+    // public function exists($groupId, $partId)
+    // {
+    //     return GroupPart::where('group_id', $groupId)
+    //         ->where('part_id', $partId)
+    //         ->exists();
+    // }
 
     // Tìm group theo ID
     public function findGroupById(int $id)
