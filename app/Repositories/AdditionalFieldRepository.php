@@ -10,8 +10,13 @@ use App\Models\AdditionalField;
 
 class AdditionalFieldRepository
 {
-    public function getByVersionId($versionId)
+    public function getAllVersionById($versionId)
     {
-        return AdditionalField::whereIn('version_id', $versionId)->get();
+        return AdditionalField::where('version_id', $versionId)->get();
+    }
+
+    public function findById($id)
+    {
+        return AdditionalField::findOrFail($id);
     }
 }

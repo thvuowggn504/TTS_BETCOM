@@ -61,7 +61,7 @@ type AdditionalField {
     id: ID!
     name: String!
     value: String
-    version_id: INT!
+    version_id: Int!
     type_id: String
     data_type: String
     type_group: String!
@@ -351,6 +351,24 @@ extend type Query {
         )
 }
 
+type Query {
+    additionalFieldsByVersionId(version_id: ID!): [AdditionalField!]!
+        @field(
+            resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getAllVersion"
+        )
+
+    additionalField(id: ID!): AdditionalField
+        @field(
+            resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getVersionById"
+        )
+
+    getPublishedParts: [Part!]!
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllPublished")
+
+    getUnpublishedParts: [Part!]!
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllUnpublished")
+}
+
 extend type Mutation {
     updatePart(input: UpdatePartInput!): Version
         @field(resolver: "App\\GraphQL\\Mutations\\PartResolver@updatePart")
@@ -381,4 +399,9 @@ extend type Mutation {
         )
     createGroup(input: CreateGroupInput!): Group
         @field(resolver: "App\\GraphQL\\Mutations\\GroupResolver@createGroup")
+
+    # duplicateFullPart(part_id: ID!, code: String!): Part
+    #     @field(
+    #         resolver: "App\\GraphQL\\Mutations\\PartResolver@duplicateFullPart"
+    #     )
 }

@@ -11,11 +11,20 @@ use App\Repositories\AdditionalFieldRepository;
 
 class AdditionalFieldService
 {
-    protected $additionalFieldRepository;
+    protected $repository;
 
-    public function __construct(AdditionalFieldRepository $additionalFieldRepository)
+    public function __construct(AdditionalFieldRepository $repository)
     {
-        $this->additionalFieldRepository = $additionalFieldRepository;
+        $this->repository = $repository;
     }
 
+    public function getAllVersion($versionId)
+    {
+        return $this->repository->getAllVersionById($versionId);
+    }
+
+    public function getVersion($id)
+    {
+        return $this->repository->findById($id);
+    }
 }
