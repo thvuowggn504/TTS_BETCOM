@@ -85,8 +85,10 @@ extend type Query {
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getVersion")
 
     getVersionByVersionCode(input: GetVersionByVersionCodeInput!): Version
-        @field(resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode")
-        
+        @field(
+            resolver: "App\\GraphQL\\Queries\\VersionQuery@getVersionByVersionCode"
+        )
+
     getLatestVersion(partId: ID!): Version!
         @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getLatestVersion")
 
@@ -218,7 +220,9 @@ extend type Query {
             resolver: "App\\GraphQL\\Queries\\GroupQuery@getGroupsByVersionId"
         )
     getAdditionalFieldsFromGroup(groupId: ID!): [AdditionalField]
-        @field(resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup")
+        @field(
+            resolver: "App\\GraphQL\\Queries\\GroupQuery@getAdditionalFieldsFromGroup"
+        )
 }
 
 input CreateGroupPartInput {
@@ -232,6 +236,8 @@ extend type Mutation {
 }
 
 scalar JSON @scalar(class: "MLL\\GraphQLScalars\\JSON")
+scalar DateTime
+    @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Codebuilder {
     id: ID!
@@ -318,6 +324,8 @@ input EditGroupInput {
     name: String
     type_id: ID
     is_optional: Boolean
+    version_id: ID
+    assembler_id: ID
 }
 
 extend type Query {
@@ -328,6 +336,18 @@ extend type Query {
     ): Version
         @field(
             resolver: "App\\GraphQL\\Mutations\\VersionResolver@getVersionByCode"
+        )
+}
+
+input VersionFiltersInput {
+    enable_assembly_groups: Boolean
+    status: String
+    revision_id: ID
+}
+extend type Query {
+    searchVersionsAssembler(filter: VersionFiltersInput): [Version!]!
+        @field(
+            resolver: "App\\GraphQL\\Mutations\\VersionResolver@searchVersionsAssembler"
         )
 }
 

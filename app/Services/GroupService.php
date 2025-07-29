@@ -23,6 +23,7 @@ class GroupService
         VersionRepository $versionRepository,
         AdditionalFieldRepository $additionalFieldRepository
     ) {
+        $this->groupRepository = $groupRepository;
         $this->groupPartRepository = $groupPartRepository;
         $this->versionRepository = $versionRepository;
         $this->additionalFieldRepository = $additionalFieldRepository;
@@ -30,6 +31,28 @@ class GroupService
 
     public function editGroup(array $input): Group
     {
+        // Ép kiểu an toàn trước khi validate
+        $input['id'] = (int) $input['id'];
+
+        // Nếu truyền vào là 'type' (theo name) → convert sang type_id
+        if (isset($input['type'])) {
+            $type = \App\Models\Type::where('name', $input['type'])->first();
+
+            if (!$type) {
+                throw ValidationException::withMessages([
+                    'type' => 'Invalid type name provided.',
+                ]);
+            }
+
+            $input['type_id'] = $type->id;
+            unset($input['type']); // Xoá để tránh lỗi validate vì không có field 'type'
+        }
+
+        // Tiếp tục ép kiểu type_id nếu tồn tại
+        if (isset($input['type_id'])) {
+            $input['type_id'] = (int) $input['type_id'];
+        }
+
         // Validate input
         $validator = Validator::make($input, [
             'id' => 'required|exists:groups,id',
