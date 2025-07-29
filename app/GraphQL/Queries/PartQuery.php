@@ -103,19 +103,12 @@ class PartQuery
         return $this->partService->searchByType($typeId);
     }
 
-    //Lấy tất cả các part đã published
-    public function getAllPublished()
+    public function getPartsByPublishedStatus($_, array $args)
     {
-        return Part::whereHas('versions', function ($q) {
-            $q->where('status', 'Published');
-        })->get();
-    }
+        $published = $args['published'] ?? true;
 
-    //Láy tất cả các part chưa published
-    public function getAllUnpublished()
-    {
-        return Part::whereDoesntHave('versions', function ($q) {
+        return Part::whereHas('versions', function ($q) use ($published) {
             $q->where('status', 'Published');
-        })->get();
+        }, $published ? '>' : '=', 0)->get();
     }
 }

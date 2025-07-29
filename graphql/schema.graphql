@@ -272,7 +272,9 @@ extend type Mutation {
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@storeRule"
         )
-    addPropertyToCodebuilder(input: AddPropertyToCodebuilderInput!): Codebuilder
+    addPropertyToCodebuilder(
+        input: AddPropertyToCodebuilderInput!
+    ): Codebuilder
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@addPropertyToCodebuilder"
         )
@@ -290,7 +292,7 @@ input StoreRuleToInput {
 }
 
 input CreateCodebuilderInput {
-    version_id: ID! 
+    version_id: ID!
     rule: String
     name: String
     is_default: Boolean = false
@@ -362,11 +364,8 @@ type Query {
             resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getVersionById"
         )
 
-    getPublishedParts: [Part!]!
-        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllPublished")
-
-    getUnpublishedParts: [Part!]!
-        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getAllUnpublished")
+    getParts(published: Boolean!): [Part!]!
+    @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByPublishedStatus")
 }
 
 extend type Mutation {
