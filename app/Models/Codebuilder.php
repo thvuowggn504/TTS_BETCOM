@@ -15,11 +15,11 @@ class Codebuilder extends Model
         'version_id',
         'name',
         'rule',
+        'rule_data',
         'is_default',
     ];
 
     protected $casts = [
-        'rule' => 'array',
         'is_default' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
