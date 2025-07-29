@@ -63,6 +63,7 @@ class RevisionService
                 'name' => $version->name,
                 'code' => $version->code,
                 'version_code' => '1.0',
+                'enable_assembly_groups' => $version->enable_assembly_groups,
                 'description' => $version->description,
                 'type_id' => $version->type_id,
                 'status' => 'Draft',

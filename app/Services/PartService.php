@@ -200,13 +200,13 @@ class PartService
                     ]);
                 }
 
-                // Xoá các additional_fields không còn trong input
-                $existingFields = $currentVersion->additionalFields->pluck('name')->toArray();
-                $fieldsToDelete = array_diff($existingFields, $inputFieldNames);
+                // // Xoá các additional_fields không còn trong input
+                // $existingFields = $currentVersion->additionalFields->pluck('name')->toArray();
+                // $fieldsToDelete = array_diff($existingFields, $inputFieldNames);
 
-                if (!empty($fieldsToDelete)) {
-                    $this->partRepository->deleteAdditionalFieldsByNames($currentVersion->id, $fieldsToDelete);
-                }
+                // if (!empty($fieldsToDelete)) {
+                //     $this->partRepository->deleteAdditionalFieldsByNames($currentVersion->id, $fieldsToDelete);
+                // }
             }
 
             return $currentVersion->refresh();
