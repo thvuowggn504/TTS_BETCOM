@@ -87,4 +87,16 @@ class Part extends Model
     // {
     //     return $this->belongsToMany(Group::class, 'group_parts');
     // }
+
+    public function versions()
+    {
+        return $this->hasManyThrough(
+            Version::class,
+            Revision::class,
+            'part_id',
+            'revision_id',
+            'id',
+            'id'
+        );
+    }
 }

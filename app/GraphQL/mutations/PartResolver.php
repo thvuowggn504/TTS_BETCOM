@@ -2,15 +2,18 @@
 
 namespace App\GraphQL\Mutations;
 
+//use App\Services\PartCloneService;
 use App\Services\PartService;
 
 class PartResolver
 {
     protected $partService;
+    //protected PartCloneService $partCloneService;
 
-    public function __construct(PartService $partService)
+    public function __construct(PartService $partService) //,PartCloneService $partCloneService
     {
         $this->partService = $partService;
+        //$this->partCloneService = $partCloneService;
     }
 
     public function createPart($_, array $args)
@@ -54,4 +57,12 @@ class PartResolver
     {
         return $this->partService->deletePart($args['id']);
     }
+
+    // public function duplicateFullPart($_, array $args)
+    // {
+    //     return $this->partCloneService->duplicatePart(
+    //         $args['part_id'],
+    //         $args['code']
+    //     );
+    // }
 }
