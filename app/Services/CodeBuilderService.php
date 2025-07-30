@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\AdditionalFieldRepository;
 use App\Repositories\CodeBuilderRepository;
-
+use PhpParser\Node\Stmt\Else_;
 
 class CodeBuilderService
 {
@@ -91,8 +91,12 @@ class CodeBuilderService
 
     public function addPropertyToCodebuilder(array $data)
     {
-        $group = Group::findOrFail($data['group_id']);
-        $groupName = lcfirst(str_replace(' ', '', $group->name));
+        $groupName = 'this';
+
+        if (!empty($data['group_id'])) {
+            $group = Group::findOrFail($data['group_id']);
+            $groupName = lcfirst(str_replace(' ', '', $group->name));
+        }
         $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
 
         $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
