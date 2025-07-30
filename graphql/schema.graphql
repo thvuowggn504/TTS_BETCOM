@@ -310,6 +310,7 @@ input UpdatePartInput {
     description: String
     type_id: Int
     additional_fields: [AdditionalFieldInput!]
+    enable_assembly_groups: Boolean
 }
 
 type EditPublishedVersionResponse {
