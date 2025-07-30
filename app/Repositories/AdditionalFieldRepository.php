@@ -12,7 +12,7 @@ class AdditionalFieldRepository
 {
     public function getAllVersionById($versionId)
     {
-        return AdditionalField::where('version_id', $versionId)->get();
+        return AdditionalField::whereIn('version_id', $versionId)->get();
     }
 
     public function findById($id)

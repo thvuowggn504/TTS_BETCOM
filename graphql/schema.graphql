@@ -70,6 +70,7 @@ type AdditionalField {
 
     version: Version @belongsTo
     part: Part @method(name: "part")
+    
 }
 
 input GetVersionByVersionCodeInput {
@@ -122,13 +123,6 @@ input CreatePartInput {
     enable_assembly_groups: Boolean!
     addToGroup: Boolean = false
 }
-
-# input AdditionalFieldInput {
-#     name: String!
-#     value: String!
-#     data_type: DataTypeEnum = STRING
-#     type_group: TypeGroupEnum = STRING
-# }
 
 input AdditionalFieldInput {
     name: String!
