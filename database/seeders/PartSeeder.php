@@ -78,7 +78,7 @@ class PartSeeder extends Seeder
 
                     // Tăng thời gian mỗi lần thêm version
                     $versionTime = $revisionTime->copy()->addSeconds($v);
-                    $enableAssemblyGroups = $type_id == 5? true : false;
+                    $enableAssemblyGroups = $type_id == 5 ? true : false;
                     // Nếu là version cuối cùng, bật nhóm lắp ráp và đặt type_id là luminaire
                     if ($v == $versionCount) {
                         $enableAssemblyGroups = true; // Luôn bật nhóm lắp ráp cho version cuối cùng
@@ -112,6 +112,13 @@ class PartSeeder extends Seeder
                         DB::table('codebuilder')->insert([
                             'name' => "Seeder Code Pattern",
                             'version_id' => $versionId,
+                            'rule' => '{this.code}',
+                            'rule_data' => json_encode(
+                                [
+                                    'group_name' => 'this',
+                                    'field_name' => 'code',
+                                ]
+                            ),
                             'is_default' => true,
                         ]);
                     }
