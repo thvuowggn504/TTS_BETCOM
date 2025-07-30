@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Http\Requests\CreatePartRequest;
 use App\Http\Requests\StoreRuleRequest;
 use App\Http\Requests\UpdateCodeBuilderRequest;
+use App\Models\AdditionalField;
+use App\Models\Codebuilder;
 use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
@@ -113,5 +115,9 @@ class CodeBuilderService
             'rule' => $updatedRule,
             'rule_data' => json_encode($updatedRuleData),
         ]);
+    }
+
+    public function getCodeBuilderByVersion($id) {
+        return Codebuilder::with('version')->where('version_id', $id)->get();
     }
 }
