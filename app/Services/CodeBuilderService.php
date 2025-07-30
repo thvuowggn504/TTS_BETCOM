@@ -7,6 +7,7 @@ use App\Http\Requests\StoreRuleRequest;
 use App\Http\Requests\UpdateCodeBuilderRequest;
 use App\Models\AdditionalField;
 use App\Models\Codebuilder;
+use App\Models\Group;
 use App\Models\Version;
 use App\Repositories\PartRepository;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +91,8 @@ class CodeBuilderService
 
     public function addPropertyToCodebuilder(array $data)
     {
-        $groupName = lcfirst(str_replace(' ', '', $data['group_name']));
+        $group = Group::findOrFail($data['group_id']);
+        $groupName = lcfirst(str_replace(' ', '', $group->name));
         $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
 
         $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
