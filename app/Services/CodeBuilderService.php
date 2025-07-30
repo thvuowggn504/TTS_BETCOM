@@ -28,7 +28,13 @@ class CodeBuilderService
     {
         $codeBuilderData = [
             'name' => $data['name'] ?? 'unnamed code pattern',
-            'rule' => $data['rule'] ?? null,
+            'rule' => '{this.code}',
+            'rule_data' => json_encode(
+                [
+                    'group_name' => 'this',
+                    'field_name' => 'code',
+                ]
+            ),
             'version_id' => $data['version_id'],
             'is_default' => $data['is_default'] ?? false,
 
@@ -117,7 +123,8 @@ class CodeBuilderService
         ]);
     }
 
-    public function getCodeBuilderByVersion($id) {
+    public function getCodeBuilderByVersion($id)
+    {
         return Codebuilder::with('version')->where('version_id', $id)->get();
     }
 }
