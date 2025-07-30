@@ -176,6 +176,12 @@ class PartService
                 }
             }
 
+            // Toggle enable_assembly_groups nếu có yêu cầu
+            if (array_key_exists('enable_assembly_groups', $input)) {
+                // Toggle giá trị hiện tại
+                $updates['enable_assembly_groups'] = !$currentVersion->enable_assembly_groups;
+            }
+
             // Nếu có field cần update
             if (!empty($updates)) {
                 $updates['updated_at'] = now();
@@ -212,6 +218,7 @@ class PartService
             return $currentVersion->refresh();
         });
     }
+
 
     /**
      * Lấy danh sách các trường mở rộng của version
