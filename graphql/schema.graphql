@@ -239,6 +239,7 @@ type Codebuilder {
     name: String
     rule: String
     rule_data: JSON
+    isDefault: Boolean @method(name: "isDefault")
     created_at: DateTime
     updated_at: DateTime
 
