@@ -82,8 +82,9 @@ class CodeBuilderService
 
     public function addPropertyToCodebuilder(array $data)
     {
-        $groupName = str_replace(' ', '_', $data['group_name']);
-        $fieldName = str_replace(' ', '_', $data['field_name']);
+        $groupName = lcfirst(str_replace(' ', '', $data['group_name']));
+        $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
+
         $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
 
         // Lấy dữ liệu hiện tại của code builder
