@@ -108,10 +108,10 @@ class CodeBuilderService
         $existingRule = $current->rule ?? '';
         $existingRuleData = json_decode($current->rule_data, true) ?? [];
 
-        // Nếu placeholder đã tồn tại thì không thêm nữa
-        if (str_contains($existingRule, $newPlaceholder)) {
-            return $current; // Không cần cập nhật nếu đã có
-        }
+        // // Nếu placeholder đã tồn tại thì không thêm nữa
+        // if (str_contains($existingRule, $newPlaceholder)) {
+        //     return $current; // Không cần cập nhật nếu đã có
+        // }
 
         // Cập nhật rule mới và rule_data mới
         $updatedRule = trim($existingRule . $newPlaceholder);
