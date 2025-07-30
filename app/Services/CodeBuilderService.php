@@ -131,6 +131,6 @@ class CodeBuilderService
 
     public function getCodeBuilderByVersion($id)
     {
-        return Codebuilder::with('version')->where('version_id', $id)->get();
+        return Codebuilder::with('version')->where('version_id', $id)->orderByDesc('id')->get();
     }
 }
