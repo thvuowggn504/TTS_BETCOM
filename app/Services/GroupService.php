@@ -118,7 +118,7 @@ class GroupService
         if ($versionIds->isEmpty()) {
             throw new \Exception('No versions found for this group.');
         }
-        $additionalFields = $this->additionalFieldRepository->getByVersionId($versionIds);
+        $additionalFields = $this->additionalFieldRepository->getAllVersionById($versionIds);
         if ($additionalFields->isEmpty()) {
             throw new \Exception('No additional fields found for this group.');
         }

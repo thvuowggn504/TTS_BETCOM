@@ -64,7 +64,7 @@ class CodeBuilderService
             throw new \Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
 
-        preg_match_all('/\{([^\{\}]+?)\.([a-zA-Z0-9_]+)\}/', $data['rule'], $matches, PREG_SET_ORDER);
+        preg_match_all('/\{([a-zA-Z][a-zA-Z0-9]*)\.([a-zA-Z][a-zA-Z0-9]*)\}/', $data['rule'], $matches, PREG_SET_ORDER);
         if (empty($matches)) {
             throw new \Exception("No valid placeholders found in template.");
         }
