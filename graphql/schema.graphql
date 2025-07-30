@@ -303,6 +303,7 @@ input UpdateCodebuilderInput {
 
 # ----------------------------------------------------------------------------------------------
 
+#
 input UpdatePartInput {
     version_id: ID!
     name: String
