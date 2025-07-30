@@ -111,4 +111,39 @@ class PartQuery
             $q->where('status', 'Published');
         }, $published ? '>' : '=', 0)->get();
     }
+
+    public function filterParts($root, array $args)
+    {
+        $query = Part::query();
+
+        if (isset($args['filter']['keyword'])) {
+            $keyword = $args['filter']['keyword'];
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'ilike', "%$keyword%")
+                    ->orWhere('code', 'ilike', "%$keyword%");
+            });
+        }
+
+        if (isset($args['filter']['type_id'])) {
+            $query->where('type_id', $args['filter']['type_id']);
+        }
+
+        if (isset($args['filter']['published'])) {
+            $query->whereHas('revisions.versions', function ($q) use ($args) {
+                $q->where('status', $args['filter']['published'] ? 'Published' : 'Draft');
+            });
+        }
+
+        // if (isset($args['filter']['is_assembler'])) {
+        //     $query->where('is_assembler', $args['filter']['is_assembler']);
+        // }
+
+        if (isset($args['filter']['is_assembler'])) {
+            $query->whereHas('revisions.versions', function ($q) use ($args) {
+                $q->where('enable_assembly_groups', $args['filter']['is_assembler']);
+            });
+        }
+
+        return $query->get();
+    }
 }

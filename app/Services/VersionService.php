@@ -166,10 +166,19 @@ class VersionService
         return $this->versionRepository->update($versionId, $data);
     }
 
-    /**
-     * Tìm kiếm version theo enable_assembly_groups (true/false)
-     */
-    public function searchVersionsAssembler(array $filters) {
-        return $this -> versionRepository -> searchVersionsByAssembler($filters);
+    // /**
+    //  * Tìm kiếm version theo enable_assembly_groups (true/false)
+    //  */
+    // public function searchVersionsAssembler(array $filters) {
+    //     return $this -> versionRepository -> searchVersionsByAssembler($filters);
+    // }
+
+    public function searchVersionsAssembler(array $filters)
+    {
+        if (isset($filters['is_assembler'])) {
+            $filters['enable_assembly_groups'] = $filters['is_assembler'];
+            unset($filters['is_assembler']);
+        }
+        return $this->versionRepository->searchVersionsByAssembler($filters);
     }
 }

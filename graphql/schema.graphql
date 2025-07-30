@@ -365,7 +365,21 @@ type Query {
         )
 
     getParts(published: Boolean!): [Part!]!
-    @field(resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByPublishedStatus")
+        @field(
+            resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByPublishedStatus"
+        )
+}
+
+input PartFilterInput {
+    keyword: String
+    type_id: ID
+    published: Boolean
+    is_assembler: Boolean
+}
+
+extend type Query {
+    filterParts(filter: PartFilterInput): [Part!]!
+        @field(resolver: "App\\GraphQL\\Queries\\PartQuery@filterParts")
 }
 
 extend type Mutation {
