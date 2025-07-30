@@ -32,4 +32,9 @@ class Codebuilder extends Model
     {
         return $this->belongsTo(Version::class);
     }
+
+    public function isDefault()
+    {
+        return $this->is_default;
+    }
 }
