@@ -516,14 +516,16 @@ class PartService
 
     protected function generateNextVersionCode($revision)
     {
-        $major = (int) explode('.', $revision->revision_code)[0];
-
         $existingVersions = $revision->versions ?? $this->partRepository->getAllVersionsOfRevision($revision->id);
+
+        if (count($existingVersions) === 0) {
+            return '1.0';
+        }
 
         $maxMinor = 0;
 
         foreach ($existingVersions as $version) {
-            if (preg_match('/^' . $major . '\.(\d+)$/', $version->version_code, $matches)) {
+            if (preg_match('/^1\.(\d+)$/', $version->version_code, $matches)) {
                 $minor = (int) $matches[1];
                 if ($minor > $maxMinor) {
                     $maxMinor = $minor;
@@ -531,6 +533,6 @@ class PartService
             }
         }
 
-        return $major . '.' . ($maxMinor + 1);
+        return '1.' . ($maxMinor + 1);
     }
 }

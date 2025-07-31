@@ -352,16 +352,6 @@ extend type Query {
 }
 
 type Query {
-    additionalFieldsByVersionId(version_id: ID!): [AdditionalField!]!
-        @field(
-            resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getAllVersion"
-        )
-
-    additionalField(id: ID!): AdditionalField
-        @field(
-            resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getVersionById"
-        )
-
     getParts(published: Boolean!): [Part!]!
         @field(
             resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByPublishedStatus"
