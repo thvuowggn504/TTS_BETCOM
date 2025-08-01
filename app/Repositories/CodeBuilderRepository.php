@@ -24,19 +24,14 @@ class CodeBuilderRepository
 
     public function delete($id)
     {
-        $codeBuilder = $this->findById($id);
+        $codeBuilder = $this->find($id);
         if (!$codeBuilder) {
             throw new \Exception("CodeBuilder not found");
         }
         return $codeBuilder->delete();
     }
 
-    public function findById($id)
-    {
-        return Codebuilder::find($id);
-    }
-
     public function find($id) {
-        return Codebuilder::find($id);
+        return Codebuilder::findOrFail($id);
     }
 }

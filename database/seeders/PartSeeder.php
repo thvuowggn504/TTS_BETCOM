@@ -109,17 +109,24 @@ class PartSeeder extends Seeder
                             'assembler_id' => $partId,
                             'version_id' => $versionId,
                         ]);
-                        DB::table('codebuilder')->insert([
+                        $codeBuilderId = DB::table('codebuilder')->insertGetId([
                             'name' => "Seeder Code Pattern",
                             'version_id' => $versionId,
                             'rule' => '{this.code}',
                             'rule_data' => json_encode(
-                                [
-                                    'group_name' => 'this',
-                                    'field_name' => 'code',
-                                ]
+                                ['version' => [
+                                    'id' => $versionId,
+                                    'defaultFields' => [
+                                        'code' => "PART-$i",
+                                    ]
+                                ]]
                             ),
                             'is_default' => true,
+                        ]);
+                        DB::table('generated_codes')->insert([
+                            'codebuilder_id' => $codeBuilderId,
+                            'version_id' => $versionId,
+                            'generated_code' => "PART-$i-Seeder"
                         ]);
                     }
                 }

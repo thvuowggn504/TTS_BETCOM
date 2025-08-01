@@ -279,6 +279,7 @@ extend type Mutation {
 input AddPropertyToCodebuilderInput {
     id: ID!
     group_id: ID
+    # field_id: ID
     field_name: String!
 }
 
@@ -303,7 +304,6 @@ input UpdateCodebuilderInput {
 
 # ----------------------------------------------------------------------------------------------
 
-#
 input UpdatePartInput {
     version_id: ID!
     name: String
