@@ -525,11 +525,12 @@ class PartService
         $maxMinor = 0;
 
         foreach ($existingVersions as $version) {
-            if (preg_match('/^1\.(\d+)$/', $version->version_code, $matches)) {
-                $minor = (int) $matches[1];
-                if ($minor > $maxMinor) {
-                    $maxMinor = $minor;
-                }
+            $parts = explode('.', $version->version_code);
+
+            // Nếu major == 1 và minor là số
+            if (count($parts) === 2 && $parts[0] === '1' && is_numeric($parts[1])) {
+                $minor = (int) $parts[1];
+                $maxMinor = max($maxMinor, $minor);
             }
         }
 
