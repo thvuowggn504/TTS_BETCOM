@@ -10,7 +10,6 @@ class GeneratedCode extends Model
 
     protected $fillable = [
         'codebuilder_id',
-        'group_id',
         'version_id',
         'part_id',
         'generated_code'
@@ -24,10 +23,5 @@ class GeneratedCode extends Model
     public function codebuilder()
     {
         return $this->belongsTo(Codebuilder::class, 'codebuilder_id');
-    }
-
-    public function group()
-    {
-        return $this->belongsTo(Group::class, 'group_id');
     }
 }

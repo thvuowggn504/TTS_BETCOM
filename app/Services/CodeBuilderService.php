@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\AdditionalFieldRepository;
 use App\Repositories\CodeBuilderRepository;
+use App\Services\GeneratedCodeService;
 use Exception;
 use PhpParser\Node\Expr\Throw_;
 use PhpParser\Node\Stmt\Else_;
@@ -21,10 +22,13 @@ use PhpParser\Node\Stmt\Else_;
 class CodeBuilderService
 {
     protected $codeBuilderRepository;
+    protected $generatedCodeService;
 
-    public function __construct(CodeBuilderRepository $codeBuilderRepository)
+    public function __construct(CodeBuilderRepository $codeBuilderRepository, GeneratedCodeService $generatedCodeService )
     {
         $this->codeBuilderRepository = $codeBuilderRepository;
+        $this->generatedCodeService = $generatedCodeService;
+
     }
 
     public function create(array $data)
@@ -46,7 +50,9 @@ class CodeBuilderService
             'is_default' => $data['is_default'] ?? false,
 
         ];
-        return $this->codeBuilderRepository->create($codeBuilderData);
+        $codebuilder = $this->codeBuilderRepository->create($codeBuilderData);
+        $this->generatedCodeService->create(['codebuilder_id' => $codebuilder->id]);
+        return $codebuilder;
     }
 
     public function update(array $data)
@@ -202,7 +208,7 @@ class CodeBuilderService
                 }
             } else {
                 // Xử lý group
-                if (!isset($data['group_id']))
+                if (empty($data['group_id']))
                     throw new Exception('Missing group_id for group rule.');
                 $group = Group::with(['groupParts.version'])->findOrFail($data['group_id']);
 
@@ -348,17 +354,23 @@ class CodeBuilderService
         // Cập nhật rule
         $groupName = empty($data['group_id']) ? 'this' : lcfirst(str_replace(' ', '', $group->name));
         $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
-        // echo('old rule: ' . $current->rule);
         // Giữ nguyên các rule cũ và THÊM mới vào cuối
         $updatedRule = $current->rule . $newPlaceholder;
-        // echo('new rule: ' . $updatedRule);
-        // Lưu vào database
-        return $this->storeRule([
-            'id' => $data['id'],
+        // return $this->storeRule([
+        //     'id' => $data['id'],
+        //     'rule' => $updatedRule,
+        //     'rule_data' => json_encode($existingRuleData, JSON_UNESCAPED_UNICODE),
+        //     'group_id' => isset($group) ? $group->id : null
+        // ]);
+
+        $codebuilder = $this->codeBuilderRepository->update($data['id'], [
             'rule' => $updatedRule,
             'rule_data' => json_encode($existingRuleData, JSON_UNESCAPED_UNICODE),
-            'group_id' => isset($group) ? $group->id : null
         ]);
+
+        $this->generatedCodeService->update($codebuilder->id);
+        
+        return $codebuilder;
     }
 
     function formatLabel($input)

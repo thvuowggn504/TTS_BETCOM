@@ -31,6 +31,14 @@ class GeneratedCodeRepository
         return $generatedCode->delete();
     }
 
+    public function deleteWhere($codebuilderId) {
+        $generatedCode = GeneratedCode::where('codebuilder_id', $codebuilderId);
+        if (!$generatedCode) {
+            throw new \Exception("Generated Code not found");
+        }
+        return $generatedCode->delete();
+    }
+
     public function find($id) {
         return GeneratedCode::findOrFail($id);
     }

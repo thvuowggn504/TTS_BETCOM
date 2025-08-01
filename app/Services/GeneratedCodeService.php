@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Models\Part;
 use App\Models\Version;
 use App\Repositories\PartRepository;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\GeneratedCodeRepository;
@@ -33,7 +34,7 @@ class GeneratedCodeService
         // Validate input
         $validator = Validator::make($request->all(), $request->rules());
         if ($validator->fails()) {
-            throw new \Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
+            throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
 
         $codebuilder = Codebuilder::findOrFail($data['codebuilder_id']);
@@ -46,51 +47,82 @@ class GeneratedCodeService
         return $generatedCodes;
     }
 
-    public function update(Codebuilder $codebuilder)
+    public function update($codebuilderId)
     {
-        $characterArray = $this->extractTextBetweenBraces($codebuilder->rule);
-        if (!empty($characterArray)) {
-            
+        $codebuilder = Codebuilder::findOrFail($codebuilderId);
+        $ruleData = json_decode($codebuilder->rule_data, true);
+        $generatedData = $this->generateCodesFromRule($codebuilder->rule, $ruleData);
+        if (empty($generatedData))
+            throw new Exception('failed to generate Data');
+        // Cap nhat: xoa code cu & tao lai
+        $this->repository->deleteWhere(['codebuilder_id' => $codebuilder->id]);
+
+        foreach ($generatedData as $code) {
+            $this->repository->create([
+                'generated_code' => $code,
+                'codebuilder_id' => $codebuilder->id,
+                'version_id' => $codebuilder->version_id,
+            ]);
         }
+
+        return $generatedData;
     }
 
-    function extractTextBetweenBraces(string $rule): array
+    function generateCodesFromRule(string $rule, array $ruleData): array
     {
-        $results = [];
-        preg_match_all('/\}([^{}]*)\{/', $rule, $matches);
+        $fields = $this->extractFieldsInOrder($rule); // Lấy danh sách field theo thứ tự
+        $combinations = [[]];
 
-        if (!empty($matches[1])) {
-            foreach ($matches[1] as $match) {
-                $results[] = $match;
+        foreach ($fields as $index => $field) {
+            $data = $ruleData[$index] ?? null;
+            $values = [];
+
+            if (str_starts_with($field, 'this.')) {
+                $key = lcfirst(str_replace('this.', '', $field));
+                $val = $data['version']['defaultFields'][$key]
+                    ?? $data['version']['additionalFields'][$key]
+                    ?? null;
+                if ($val !== null) {
+                    $values = is_array($val) ? $val : [$val];
+                }
+            } else {
+                $parts = explode('.', $field);
+                $key = lcfirst(end($parts));
+                $val = $data['group']['defaultFields'][$key]
+                    ?? $data['group']['additionalFields'][$key]
+                    ?? null;
+                if ($val !== null) {
+                    $values = is_array($val) ? $val : [$val];
+                }
             }
+
+            // Cartesian product theo từng field
+            $newCombinations = [];
+            foreach ($combinations as $combo) {
+                foreach ($values as $value) {
+                    $newCombinations[] = array_merge($combo, [$value]);
+                }
+            }
+            $combinations = $newCombinations;
+        }
+
+        // Gắn vào rule
+        $results = [];
+        foreach ($combinations as $combo) {
+            $result = $rule;
+            foreach ($fields as $i => $field) {
+                $result = preg_replace('/\{' . preg_quote($field, '/') . '\}/', $combo[$i], $result, 1);
+            }
+            $results[] = $result;
         }
 
         return $results;
     }
 
-    function formatLabel($input)
+
+    function extractFieldsInOrder(string $rule): array
     {
-        // Xử lý các trường hợp đặc biệt trước
-        $output = $input;
-
-        // 1. Xử lý các từ viết tắt trong ngoặc như (No), (ID), (USD)
-        $output = preg_replace_callback('/\(([A-Za-z0-9]+)\)/', function ($matches) {
-            return '(' . ucfirst($matches[1]) . ')';
-        }, $output);
-
-        // 2. Thêm dấu cách trước dấu ngoặc mở
-        $output = preg_replace('/([a-z])\(/', '$1 (', $output);
-
-        // 3. Xử lý camelCase thông thường
-        $output = preg_replace('/([a-z])([A-Z])/', '$1 $2', $output);
-
-        // 4. Xử lý chữ số
-        $output = preg_replace('/([a-zA-Z])([0-9])/', '$1 $2', $output);
-        $output = preg_replace('/([0-9])([a-zA-Z])/', '$1 $2', $output);
-
-        // 5. Viết hoa chữ cái đầu tiên của toàn bộ chuỗi
-        $output = ucfirst(strtolower($output));
-
-        return $output;
+        preg_match_all('/\{([^{}]+)\}/', $rule, $matches);
+        return $matches[1] ?? [];
     }
 }
