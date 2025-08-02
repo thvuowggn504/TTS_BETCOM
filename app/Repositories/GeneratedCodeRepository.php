@@ -39,6 +39,10 @@ class GeneratedCodeRepository
         return $generatedCode->delete();
     }
 
+    public function getByCodeBuilder($codebuilderId) {
+        return GeneratedCode::where('codebuilder_id', $codebuilderId)->get();
+    }
+
     public function find($id) {
         return GeneratedCode::findOrFail($id);
     }

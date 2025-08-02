@@ -119,10 +119,20 @@ class GeneratedCodeService
         return $results;
     }
 
-
     function extractFieldsInOrder(string $rule): array
     {
         preg_match_all('/\{([^{}]+)\}/', $rule, $matches);
         return $matches[1] ?? [];
+    }
+
+    function validateCode($codebuilderId)
+    {
+        $generatedCodes = $this->repository->getByCodeBuilder($codebuilderId);
+        foreach ($generatedCodes as $generatedCode) {
+            $isContainted = Version::where('code', $generatedCode->generated_code)->exists();
+            if ($isContainted)
+                return false;
+        }
+        return true;
     }
 }

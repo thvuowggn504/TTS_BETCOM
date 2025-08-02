@@ -302,6 +302,10 @@ input UpdateCodebuilderInput {
     is_default: Boolean
 }
 
+extend type Query {
+    validateGeneratedCode(codebuilderId: ID!): Boolean @field(resolver: "App\\GraphQL\\Queries\\GeneratedCodeQuery@validate")
+}
+
 # ----------------------------------------------------------------------------------------------
 
 input UpdatePartInput {

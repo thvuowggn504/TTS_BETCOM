@@ -126,7 +126,7 @@ class PartSeeder extends Seeder
                         DB::table('generated_codes')->insert([
                             'codebuilder_id' => $codeBuilderId,
                             'version_id' => $versionId,
-                            'generated_code' => "PART-$i-Seeder"
+                            'generated_code' => "PART-$i"
                         ]);
                     }
                 }
