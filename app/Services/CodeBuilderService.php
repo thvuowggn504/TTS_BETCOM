@@ -24,11 +24,10 @@ class CodeBuilderService
     protected $codeBuilderRepository;
     protected $generatedCodeService;
 
-    public function __construct(CodeBuilderRepository $codeBuilderRepository, GeneratedCodeService $generatedCodeService )
+    public function __construct(CodeBuilderRepository $codeBuilderRepository, GeneratedCodeService $generatedCodeService)
     {
         $this->codeBuilderRepository = $codeBuilderRepository;
         $this->generatedCodeService = $generatedCodeService;
-
     }
 
     public function create(array $data)
@@ -157,7 +156,7 @@ class CodeBuilderService
 
     public function storeRule(array $data)
     {
-        $request = new StoreRuleRequest();
+        $request = new UpdateCodeBuilderRequest();
         $request->merge($data);
         $request->setMethod('POST');
 
@@ -166,97 +165,7 @@ class CodeBuilderService
         if ($validator->fails()) {
             throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
-
-        // Parse toàn bộ rule để xây dựng lại rule_data
-        preg_match_all('/\{([a-zA-Z][a-zA-Z0-9]*)\.([a-zA-Z][a-zA-Z0-9]*)\}/', $data['rule'], $matches, PREG_SET_ORDER);
-
-        $ruleData = [];
-        $defaultFields = ['name', 'code', 'type']; // Danh sách các field mặc định
-
-        foreach ($matches as $match) {
-            $groupName = $match[1];
-            $fieldName = $this->formatLabel($match[2]);
-            $current = $this->codeBuilderRepository->find($data['id']);
-
-            if ($groupName === 'this') {
-                // Xử lý version (không có group)
-                $version = $current->version;
-
-                $item = [
-                    'version' => [
-                        'id' => $version->id
-                    ]
-                ];
-
-                if (in_array($fieldName, $defaultFields)) {
-                    // Xử lý các trường default
-                    if ($fieldName === 'type') {
-                        $item['version']['defaultFields'] = [
-                            'type' => $version->type->name ?? null
-                        ];
-                    } else {
-                        $item['version']['defaultFields'] = [
-                            $fieldName => $version->{$fieldName} ?? null
-                        ];
-                    }
-                } else {
-                    // Xử lý additional field
-                    $additionalField = $version->additionalFields->where('name', $fieldName)->first();
-                    $item['version']['additionalFields'] = [
-                        $fieldName => $additionalField->value ?? null
-                    ];
-                }
-            } else {
-                // Xử lý group
-                if (empty($data['group_id']))
-                    throw new Exception('Missing group_id for group rule.');
-                $group = Group::with(['groupParts.version'])->findOrFail($data['group_id']);
-
-                $item = [
-                    'group' => [
-                        'id' => $group->id
-                    ]
-                ];
-
-                if (in_array($fieldName, $defaultFields)) {
-                    // Lấy dữ liệu từ các version trong group
-                    $values = [];
-                    foreach ($group->groupParts as $groupPart) {
-                        $version = $groupPart->version; // Truy cập trực tiếp
-                        if ($fieldName === 'type') {
-                            $values[] = $version->type->name ?? null;
-                        } else {
-                            $values[] = $version->{$fieldName} ?? null;
-                        }
-                    }
-
-                    $item['group']['defaultFields'] = [
-                        $fieldName => array_unique(array_filter($values))
-                    ];
-                } else {
-                    // Lấy additional fields từ các version trong group
-                    $values = [];
-                    foreach ($group->groupParts as $groupPart) {
-                        $version = $groupPart->version; // Truy cập trực tiếp
-                        $additionalField = $version->additionalFields->where('name', $fieldName)->first();
-                        if ($additionalField) {
-                            $values[] = $additionalField->value;
-                        }
-                    }
-
-                    $item['group']['additionalFields'] = [
-                        $fieldName => array_unique(array_filter($values))
-                    ];
-                }
-            }
-
-            $ruleData[] = $item;
-        }
-
-        return $this->codeBuilderRepository->update($data['id'], [
-            'rule' => $data['rule'],
-            'rule_data' => json_encode($ruleData, JSON_UNESCAPED_UNICODE)
-        ]);
+        return $this->codeBuilderRepository->update($data['id'], $data);
     }
 
     public function addPropertyToCodebuilder(array $data)
@@ -369,7 +278,7 @@ class CodeBuilderService
         ]);
 
         $this->generatedCodeService->update($codebuilder->id);
-        
+
         return $codebuilder;
     }
 
