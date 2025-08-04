@@ -14,33 +14,44 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\AdditionalFieldRepository;
 use App\Repositories\CodeBuilderRepository;
+use App\Services\GeneratedCodeService;
+use Exception;
+use PhpParser\Node\Expr\Throw_;
 use PhpParser\Node\Stmt\Else_;
 
 class CodeBuilderService
 {
     protected $codeBuilderRepository;
+    protected $generatedCodeService;
 
-    public function __construct(CodeBuilderRepository $codeBuilderRepository)
+    public function __construct(CodeBuilderRepository $codeBuilderRepository, GeneratedCodeService $generatedCodeService)
     {
         $this->codeBuilderRepository = $codeBuilderRepository;
+        $this->generatedCodeService = $generatedCodeService;
     }
 
     public function create(array $data)
     {
+        $version = Version::findOrFail($data['version_id']);
+        $ruleData = [
+            ['version' => [
+                'id' => $version->id,
+                'defaultFields' => [
+                    'code' => $version->code,
+                ]
+            ]]
+        ];
         $codeBuilderData = [
             'name' => $data['name'] ?? 'unnamed code pattern',
             'rule' => '{this.code}',
-            'rule_data' => json_encode(
-                [
-                    'group_name' => 'this',
-                    'field_name' => 'code',
-                ]
-            ),
+            'rule_data' => json_encode($ruleData, JSON_UNESCAPED_UNICODE),
             'version_id' => $data['version_id'],
             'is_default' => $data['is_default'] ?? false,
 
         ];
-        return $this->codeBuilderRepository->create($codeBuilderData);
+        $codebuilder = $this->codeBuilderRepository->create($codeBuilderData);
+        $this->generatedCodeService->create(['codebuilder_id' => $codebuilder->id]);
+        return $codebuilder;
     }
 
     public function update(array $data)
@@ -52,7 +63,7 @@ class CodeBuilderService
         // Validate input
         $validator = Validator::make($request->all(), $request->rules());
         if ($validator->fails()) {
-            throw new \Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
+            throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
         return $this->codeBuilderRepository->update($data['id'], $data);
     }
@@ -62,75 +73,243 @@ class CodeBuilderService
         return $this->codeBuilderRepository->delete($id);
     }
 
+    // public function storeRule(array $data)
+    // {
+    //     $request = new StoreRuleRequest();
+    //     $request->merge($data);
+    //     $request->setMethod('POST');
+    //     // Validate input
+    //     $validator = Validator::make($request->all(), $request->rules());
+    //     if ($validator->fails()) {
+    //         throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
+    //     }
+
+    //     preg_match_all('/\{([a-zA-Z][a-zA-Z0-9]*)\.([a-zA-Z][a-zA-Z0-9]*)\}/', $data['rule'], $matches, PREG_SET_ORDER);
+    //     if (empty($matches)) {
+    //         throw new Exception("No valid placeholders found in template.");
+    //     }
+
+    //     return $this->codeBuilderRepository->update($data['id'], [
+    //         'rule' => $data['rule'],
+    //         'rule_data' => $data['rule_data'] ?? json_encode(array_map(function ($match) {
+    //             return [
+    //                 'group_name' => $match[1],
+    //                 'field_name' => $match[2],
+    //             ];
+    //         }, $matches)),
+    //     ]);
+    // }
+
+    // public function addPropertyToCodebuilder(array $data)
+    // {
+    //     $groupName = 'this'; // mặc định nếu không có group
+    //     $groupId = null;
+
+    //     if (!empty($data['group_id'])) {
+    //         $group = Group::findOrFail($data['group_id']);
+    //         $groupName = lcfirst(str_replace(' ', '', $group->name));
+    //         $groupId = $group->id;
+    //     }
+
+    //     $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
+    //     $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
+
+    //     // Lấy codebuilder hiện tại
+    //     $current = $this->codeBuilderRepository->find($data['id']);
+    //     $existingRule = $current->rule ?? '';
+
+    //     // Đảm bảo rule_data là mảng (array)
+    //     $existingRuleData = json_decode($current->rule_data, true);
+    //     if (!is_array($existingRuleData)) {
+    //         $existingRuleData = []; // Nếu không phải mảng, khởi tạo mảng mới
+    //     }
+
+    //     // Tạo item mới
+    //     $newItem = [];
+    //     if (empty($groupId)) {
+    //         $partId = $current->version->revision->part->id ?? null;
+    //         $newItem = [
+    //             'part_id' => $partId,
+    //             'name' => $groupName,
+    //             'field' => $fieldName,
+    //         ];
+    //     } else {
+    //         $newItem = [
+    //             'group_id' => $groupId,
+    //             'name' => $groupName,
+    //             'field' => $fieldName,
+    //         ];
+    //     }
+
+    //     // Thêm item mới vào mảng
+    //     $existingRuleData[] = $newItem;
+
+    //     $updatedRule = trim($existingRule . $newPlaceholder);
+
+    //     // Lưu dưới dạng JSON array
+    //     return $this->storeRule([
+    //         'id' => $data['id'],
+    //         'rule' => $updatedRule,
+    //         'rule_data' => json_encode($existingRuleData, JSON_UNESCAPED_UNICODE),
+    //     ]);
+    // }
+
     public function storeRule(array $data)
     {
-        $request = new StoreRuleRequest();
+        $request = new UpdateCodeBuilderRequest();
         $request->merge($data);
         $request->setMethod('POST');
+
         // Validate input
         $validator = Validator::make($request->all(), $request->rules());
         if ($validator->fails()) {
-            throw new \Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
+            throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
-
-        preg_match_all('/\{([a-zA-Z][a-zA-Z0-9]*)\.([a-zA-Z][a-zA-Z0-9]*)\}/', $data['rule'], $matches, PREG_SET_ORDER);
-        if (empty($matches)) {
-            throw new \Exception("No valid placeholders found in template.");
-        }
-
-        return $this->codeBuilderRepository->update($data['id'], [
-            'rule' => $data['rule'],
-            'rule_data' => $data['rule_data'] ?? json_encode(array_map(function ($match) {
-                return [
-                    'group_name' => $match[1],
-                    'field_name' => $match[2],
-                ];
-            }, $matches)),
-        ]);
+        return $this->codeBuilderRepository->update($data['id'], $data);
     }
 
     public function addPropertyToCodebuilder(array $data)
     {
-        $groupName = 'this';
-
-        if (!empty($data['group_id'])) {
-            $group = Group::findOrFail($data['group_id']);
-            $groupName = lcfirst(str_replace(' ', '', $group->name));
-        }
-        $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
-
-        $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
-
-        // Lấy dữ liệu hiện tại của code builder
         $current = $this->codeBuilderRepository->find($data['id']);
+        if (!$current) {
+            throw new Exception("Codebuilder record not found");
+        }
+        if (!$current->version) {
+            throw new Exception("Version relationship not loaded or does not exist");
+        }
 
-        // Nếu chưa có rule, khởi tạo rỗng
-        $existingRule = $current->rule ?? '';
+        $fieldName = $data['field_name'];
+
+        // Danh sách các field mặc định
+        $defaultFields = ['name', 'code', 'type'];
+
+        if (empty($data['group_id'])) {
+            // Xử lý version (không có group)
+            $version = $current->version;
+
+            $newData = [
+                'version' => [
+                    'id' => $version->id
+                ]
+            ];
+
+            if (in_array($fieldName, $defaultFields)) {
+                // Xử lý các trường default
+                if ($fieldName === 'type') {
+                    $newData['version']['defaultFields'] = [
+                        'type' => $version->type->name ?? null
+                    ];
+                } else {
+                    $newData['version']['defaultFields'] = [
+                        $fieldName => $version->{$fieldName} ?? null
+                    ];
+                }
+            } else {
+                // Xử lý additional field
+                $additionalField = $version->additionalFields->where('name', $fieldName)->first();
+                $newData['version']['additionalFields'] = [
+                    $fieldName => $additionalField->value ?? null
+                ];
+            }
+        } else {
+            // Xử lý group
+            $group = Group::with(['groupParts.part.versions'])->findOrFail($data['group_id']);
+
+            $newData = [
+                'group' => [
+                    'id' => $group->id
+                ]
+            ];
+
+            if (in_array($fieldName, $defaultFields)) {
+                // Lấy dữ liệu từ các version trong group
+                $values = [];
+                foreach ($group->groupParts as $groupPart) {
+                    $version = $groupPart->version; // Truy cập trực tiếp
+                    if ($fieldName === 'type') {
+                        $values[] = $version->type->name ?? null;
+                    } else {
+                        $values[] = $version->{$fieldName} ?? null;
+                    }
+                }
+
+                $newData['group']['defaultFields'] = [
+                    $fieldName => array_unique(array_filter($values))
+                ];
+            } else {
+                // Lấy additional fields từ các version trong group
+                $values = [];
+                foreach ($group->groupParts as $groupPart) {
+                    $version = $groupPart->version; // Truy cập trực tiếp
+                    $additionalField = $version->additionalFields->where('name', $fieldName)->first();
+                    if ($additionalField) {
+                        $values[] = $additionalField->value;
+                    }
+                }
+
+                $newData['group']['additionalFields'] = [
+                    $fieldName => array_unique(array_filter($values))
+                ];
+            }
+        }
+
+        // Lấy rule_data hiện tại
         $existingRuleData = json_decode($current->rule_data, true) ?? [];
 
-        // Nếu placeholder đã tồn tại thì không thêm nữa
-        if (str_contains($existingRule, $newPlaceholder)) {
-            return $current; // Không cần cập nhật nếu đã có
-        }
+        // Thêm dữ liệu mới vào mảng hiện có
+        $existingRuleData[] = $newData;
+        $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
 
-        // Cập nhật rule mới và rule_data mới
-        $updatedRule = trim($existingRule . $newPlaceholder);
-        $updatedRuleData = array_merge($existingRuleData, [
-            [
-                'group_name' => $groupName,
-                'field_name' => $fieldName,
-            ]
-        ]);
+        // Cập nhật rule
+        $groupName = empty($data['group_id']) ? 'this' : lcfirst(str_replace(' ', '', $group->name));
+        $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
+        // Giữ nguyên các rule cũ và THÊM mới vào cuối
+        $updatedRule = $current->rule . $newPlaceholder;
+        // return $this->storeRule([
+        //     'id' => $data['id'],
+        //     'rule' => $updatedRule,
+        //     'rule_data' => json_encode($existingRuleData, JSON_UNESCAPED_UNICODE),
+        //     'group_id' => isset($group) ? $group->id : null
+        // ]);
 
-        return $this->storeRule([
-            'id' => $data['id'],
+        $codebuilder = $this->codeBuilderRepository->update($data['id'], [
             'rule' => $updatedRule,
-            'rule_data' => json_encode($updatedRuleData),
+            'rule_data' => json_encode($existingRuleData, JSON_UNESCAPED_UNICODE),
         ]);
+
+        $this->generatedCodeService->update($codebuilder->id);
+
+        return $codebuilder;
+    }
+
+    function formatLabel($input)
+    {
+        // Xử lý các trường hợp đặc biệt trước
+        $output = $input;
+
+        // 1. Xử lý các từ viết tắt trong ngoặc như (No), (ID), (USD)
+        $output = preg_replace_callback('/\(([A-Za-z0-9]+)\)/', function ($matches) {
+            return '(' . ucfirst($matches[1]) . ')';
+        }, $output);
+
+        // 2. Thêm dấu cách trước dấu ngoặc mở
+        $output = preg_replace('/([a-z])\(/', '$1 (', $output);
+
+        // 3. Xử lý camelCase thông thường
+        $output = preg_replace('/([a-z])([A-Z])/', '$1 $2', $output);
+
+        // 4. Xử lý chữ số
+        $output = preg_replace('/([a-zA-Z])([0-9])/', '$1 $2', $output);
+        $output = preg_replace('/([0-9])([a-zA-Z])/', '$1 $2', $output);
+
+        // // 5. Viết hoa chữ cái đầu tiên của toàn bộ chuỗi
+        // if (!in_array($output, ['name', 'code', 'type', 'height', 'width', 'lenght', 'finish','material', 'class']))
+        //     $output = ucfirst($output);
+        return $output;
     }
 
     public function getCodeBuilderByVersion($id)
     {
-        return Codebuilder::with('version')->where('version_id', $id)->get();
+        return Codebuilder::with('version')->where('version_id', $id)->orderByDesc('id')->get();
     }
 }

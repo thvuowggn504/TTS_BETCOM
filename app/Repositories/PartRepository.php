@@ -114,7 +114,7 @@ class PartRepository
     // Lấy version hiển thị (ưu tiên bản Published, fallback về bản Draft)
     public function getVisibleVersion($partId)
     {
-        $part = \App\Models\Part::with([
+        $part = Part::with([
             'revisions.versions' => function ($query) {
                 $query->orderByDesc('created_at'); // version mới nhất trước
             }

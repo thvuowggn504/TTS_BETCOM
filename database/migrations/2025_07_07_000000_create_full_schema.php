@@ -131,10 +131,22 @@ return new class extends Migration {
             $table->string('name', 100);
             $table->text('rule')->nullable();
             $table->json('rule_data')->nullable();
-            $table->boolean('is_default')->default();
+            $table->boolean('is_default')->default(false);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
 
+            $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
+        });
+
+        Schema::create('generated_codes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('codebuilder_id');
+            $table->unsignedBigInteger('version_id')->nullable();
+            $table->text('generated_code');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
+
+            $table->foreign('codebuilder_id')->references('id')->on('codebuilder')->onDelete('cascade');
             $table->foreign('version_id')->references('id')->on('versions')->onDelete('cascade');
         });
     }

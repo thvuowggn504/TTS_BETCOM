@@ -279,6 +279,7 @@ extend type Mutation {
 input AddPropertyToCodebuilderInput {
     id: ID!
     group_id: ID
+    # field_id: ID
     field_name: String!
 }
 
@@ -301,9 +302,12 @@ input UpdateCodebuilderInput {
     is_default: Boolean
 }
 
+extend type Query {
+    validateGeneratedCode(codebuilderId: ID!): Boolean @field(resolver: "App\\GraphQL\\Queries\\GeneratedCodeQuery@validate")
+}
+
 # ----------------------------------------------------------------------------------------------
 
-#
 input UpdatePartInput {
     version_id: ID!
     name: String
