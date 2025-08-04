@@ -42,7 +42,7 @@ class GeneratedCodeService
         $generatedCodes = $this->repository->create([
             'generated_code' => $version->code,
             'codebuilder_id' => $codebuilder->id,
-            'version_id' => 2,
+            'version_id' => $version->id,
         ]);
         return $generatedCodes;
     }
