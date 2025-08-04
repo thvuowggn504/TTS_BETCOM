@@ -70,7 +70,6 @@ type AdditionalField {
 
     version: Version @belongsTo
     part: Part @method(name: "part")
-
 }
 
 input GetVersionByVersionCodeInput {
@@ -122,6 +121,7 @@ input CreatePartInput {
     additional_fields: [AdditionalFieldInput!] # Các trường bổ sung theo type
     enable_assembly_groups: Boolean!
     addToGroup: Boolean = false
+    group_id: ID!
 }
 
 input AdditionalFieldInput {
@@ -248,7 +248,9 @@ type Codebuilder {
 
 extend type Query {
     getCodeBuilderByVersion(versionId: ID!): [Codebuilder!]
-        @field(resolver: "App\\GraphQL\\Queries\\CodeBuilderQuery@getCodeBuilderByVersion")
+        @field(
+            resolver: "App\\GraphQL\\Queries\\CodeBuilderQuery@getCodeBuilderByVersion"
+        )
 }
 
 extend type Mutation {
@@ -405,4 +407,9 @@ extend type Mutation {
     #     @field(
     #         resolver: "App\\GraphQL\\Mutations\\PartResolver@duplicateFullPart"
     #     )
+}
+
+type Mutation {
+    createAndAddPartToGroup(input: CreatePartInput!): Part
+        @field(resolver: "PartResolver@createAndAddPartToGroup")
 }
