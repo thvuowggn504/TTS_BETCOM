@@ -17,4 +17,8 @@ class GeneratedCodeQuery
     public function validate($_, $args) {
         return $this->generatedCodeService->validateCode($args['codebuilderId']);
     }
+
+    public function getCode($_, $args) {
+        return $this->generatedCodeService->getCode($args['codebuilderId']);
+    }
 }
