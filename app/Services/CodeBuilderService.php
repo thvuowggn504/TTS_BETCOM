@@ -166,8 +166,12 @@ class CodeBuilderService
             throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
         $codebuilder = $this->codeBuilderRepository->find($data['id']);
-        $this->generatedCodeService->update($codebuilder->id);
-        return $this->codeBuilderRepository->update($data['id'], $data);
+        $newCodeBuilder = $this->codeBuilderRepository->update($data['id'], $data);
+        $code = $this->generatedCodeService->update($codebuilder->id);
+        if (empty($code))
+            throw new Exception("ko cập nhật code khi store codebuilder");
+
+        return $newCodeBuilder;
     }
 
     public function addPropertyToCodebuilder(array $data)
