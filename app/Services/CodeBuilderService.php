@@ -165,6 +165,8 @@ class CodeBuilderService
         if ($validator->fails()) {
             throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
+        $codebuilder = $this->codeBuilderRepository->find($data['id']);
+        $this->generatedCodeService->update($codebuilder->id);
         return $this->codeBuilderRepository->update($data['id'], $data);
     }
 
@@ -265,12 +267,6 @@ class CodeBuilderService
         $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
         // Giữ nguyên các rule cũ và THÊM mới vào cuối
         $updatedRule = $current->rule . $newPlaceholder;
-        // return $this->storeRule([
-        //     'id' => $data['id'],
-        //     'rule' => $updatedRule,
-        //     'rule_data' => json_encode($existingRuleData, JSON_UNESCAPED_UNICODE),
-        //     'group_id' => isset($group) ? $group->id : null
-        // ]);
 
         $codebuilder = $this->codeBuilderRepository->update($data['id'], [
             'rule' => $updatedRule,

@@ -24,7 +24,7 @@ class UpdateCodeBuilderRequest extends FormRequest
         return [
             'id' => 'required|exists:codebuilder,id',
             'name' => 'string|max:255',
-            'rule' => 'json',
+            'rule' => 'string',
             // 'rule.*.name' => 'required|string|max:255',
             // 'rule.*.field' => 'required|string|max:255',
             // 'rule.*.value' => 'required|string|max:255',

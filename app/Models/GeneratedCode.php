@@ -24,4 +24,8 @@ class GeneratedCode extends Model
     {
         return $this->belongsTo(Codebuilder::class, 'codebuilder_id');
     }
+
+    public function generatedCode() {
+        return $this->generated_code;
+    }
 }

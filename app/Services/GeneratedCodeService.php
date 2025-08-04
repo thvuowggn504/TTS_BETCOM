@@ -135,4 +135,8 @@ class GeneratedCodeService
         }
         return true;
     }
+
+    function getCode($codebuilderId) {
+        return $this->repository->getByCodeBuilder($codebuilderId);
+    }
 }
