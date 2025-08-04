@@ -19,13 +19,16 @@ class PartService
     protected $versionRepository;
     protected $revisionRepository;
     protected $codeBuilderService;
+    protected $groupPartService;
 
     public function __construct(
         PartRepository $partRepository,
         VersionRepository $versionRepository,
         RevisionRepository $revisionRepository,
-        CodeBuilderService $codeBuilderService
+        CodeBuilderService $codeBuilderService,
+        GroupPartService $groupPartService
     ) {
+        $this->groupPartService = $groupPartService;
         $this->partRepository = $partRepository;
         $this->versionRepository = $versionRepository;
         $this->revisionRepository = $revisionRepository;
@@ -535,5 +538,25 @@ class PartService
         }
 
         return '1.' . ($maxMinor + 1);
+    }
+
+    public function createAndAddPartToGroup(array $input)
+    {
+        return DB::transaction(function () use ($input) {
+            // B1: Tạo Part mới (gọi hàm có sẵn)
+            $part = $this->createPart($input);
+
+            // B2: Add part vào group nếu có group_id
+            if (!empty($input['group_id'])) {
+                $this->groupPartService->createGroupPart([
+                    [
+                        'group_id' => $input['group_id'],
+                        'part_id' => $part->id
+                    ]
+                ]);
+            }
+
+            return $part;
+        });
     }
 }

@@ -121,6 +121,7 @@ input CreatePartInput {
     additional_fields: [AdditionalFieldInput!] # Các trường bổ sung theo type
     enable_assembly_groups: Boolean!
     addToGroup: Boolean = false
+    group_id: ID!
 }
 
 input AdditionalFieldInput {
@@ -418,4 +419,9 @@ extend type Mutation {
     #     @field(
     #         resolver: "App\\GraphQL\\Mutations\\PartResolver@duplicateFullPart"
     #     )
+}
+
+type Mutation {
+    createAndAddPartToGroup(input: CreatePartInput!): Part
+        @field(resolver: "PartResolver@createAndAddPartToGroup")
 }
