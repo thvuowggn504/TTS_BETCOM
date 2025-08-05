@@ -266,16 +266,16 @@ extend type Mutation {
         @field(
             resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@delete"
         )
-    storeRuleToCodebuilder(input: StoreRuleToInput!): Codebuilder
-        @field(
-            resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@storeRule"
-        )
-    addPropertyToCodebuilder(
-        input: AddPropertyToCodebuilderInput!
-    ): Codebuilder
-        @field(
-            resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@addPropertyToCodebuilder"
-        )
+    # storeRuleToCodebuilder(input: StoreRuleToInput!): Codebuilder
+    #     @field(
+    #         resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@storeRule"
+    #     )
+    # addPropertyToCodebuilder(
+    #     input: AddPropertyToCodebuilderInput!
+    # ): Codebuilder
+    #     @field(
+    #         resolver: "App\\GraphQL\\Mutations\\CodebuilderRuleResolver@addPropertyToCodebuilder"
+    #     )
 }
 
 input AddPropertyToCodebuilderInput {
