@@ -35,15 +35,15 @@ class CodebuilderRuleResolver
         return $this->codeBuilderService->delete($args['id']);
     }
 
-    public function storeRule($_, array $args)
-    {
-        return $this->codeBuilderService->storeRule($args['input']);
-    }
+    // public function storeRule($_, array $args)
+    // {
+    //     return $this->codeBuilderService->storeRule($args['input']);
+    // }
 
-    public function addPropertyToCodebuilder($_, array $args)
-    {
-        $codebuilder = $this->codeBuilderService->addPropertyToCodebuilder($args['input']);
-        // $this->generatedCodeService->update($codebuilder->id);
-        return $codebuilder;
-    }
+    // public function addPropertyToCodebuilder($_, array $args)
+    // {
+    //     $codebuilder = $this->codeBuilderService->addPropertyToCodebuilder($args['input']);
+    //     // $this->generatedCodeService->update($codebuilder->id);
+    //     return $codebuilder;
+    // }
 }
