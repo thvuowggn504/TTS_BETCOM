@@ -26,7 +26,7 @@ class PartSeeder extends Seeder
         $versionCounter = 1;
         $now = now(); // Carbon instance
 
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
 
             $type_id = rand(1, 6);
             // Tạo Part
@@ -106,6 +106,7 @@ class PartSeeder extends Seeder
                     if ($enableAssemblyGroups) {
                         DB::table('groups')->insert([
                             'name' => "Default Group",
+                            'name_id' => "defaultGroup",
                             'assembler_id' => $partId,
                             'version_id' => $versionId,
                         ]);

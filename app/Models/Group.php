@@ -17,6 +17,7 @@ class Group extends Model
         'type_id',
         'version_id',
         'is_optional',
+        'name_id'
     ];
 
     /**

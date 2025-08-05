@@ -87,7 +87,25 @@ class GroupService
             ]);
         }
 
-        return $this->groupRepository->createGroup($input);
+        $toCamalCase = function (string $str): string {
+            $str = preg_replace('/[^a-zA-Z0-9 ]/', '', $str); // Xóa ký tự đặc biệt
+            $words = explode(' ', strtolower($str));
+            $camel = array_shift($words);
+            foreach ($words as $word) {
+                $camel .= ucfirst($word);
+            }
+            return $camel;
+        };
+
+        $nameId = $toCamalCase($input['name']);
+        return $this->groupRepository->createGroup([
+            'name' => $input['name'],
+            'name_id' => $nameId,
+            'type_id' => $input['type_id'],
+            'version_id' => $input['version_id'],
+            'is_optional' => $input['is_optional'],
+            'assembler_id' => $input['assembler_id'],
+        ]);
     }
 
     // public function getAdditionalFieldsFromGroup($groupId)
