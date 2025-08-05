@@ -26,10 +26,11 @@ class CodeBuilderService
     protected $generatedCodeService;
     protected $versionRepository;
 
-    public function __construct(CodeBuilderRepository $codeBuilderRepository,
-    GeneratedCodeService $generatedCodeService,
-    VersionRepository $versionRepository)
-    {
+    public function __construct(
+        CodeBuilderRepository $codeBuilderRepository,
+        GeneratedCodeService $generatedCodeService,
+        VersionRepository $versionRepository
+    ) {
         $this->codeBuilderRepository = $codeBuilderRepository;
         $this->generatedCodeService = $generatedCodeService;
         $this->versionRepository = $versionRepository;
@@ -89,21 +90,175 @@ class CodeBuilderService
         if ($validator->fails()) {
             throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
         }
+
         $codebuilder = $this->codeBuilderRepository->find($data['id']);
+        if (!$codebuilder) {
+            throw new Exception("Codebuilder not found");
+        }
+
         $version = $this->versionRepository->findById($codebuilder->version_id);
-        if (empty($version))
+        if (!$version) {
             throw new Exception("Version not found!");
+        }
 
+        // Danh sách group hiện có
+        $allGroups = Group::with(['groupParts.part.versions.additionalFields', 'groupParts.version.additionalFields'])->get();
 
-        $newCodeBuilder = $this->codeBuilderRepository->update($data['id'],[
-        'rule' => $data['rule']
+        // Danh sách field mặc định
+        $defaultFields = ['name', 'code', 'type'];
+
+        // Hàm chuyển tên group về dạng camelCase
+        $toCamelCase = function (string $str): string {
+            $str = preg_replace('/[^a-zA-Z0-9 ]/', '', $str);
+            $words = explode(' ', strtolower($str));
+            $camel = array_shift($words);
+            foreach ($words as $word) {
+                $camel .= ucfirst($word);
+            }
+            return $camel;
+        };
+
+        // Tìm group theo camelCase
+        $findGroupByCamel = function ($camelName, $versionId) use ($allGroups, $toCamelCase) {
+            foreach ($allGroups as $group) {
+                if ($toCamelCase($group->name) === $camelName && $group->version->id == $versionId) {
+                    return $group;
+                }
+            }
+            return null;
+        };
+
+        // Bắt đầu xử lý rule
+        $rule = $data['rule'];
+        preg_match_all('/\{([^{}]+)\}/', $rule, $matches);
+        $placeholders = $matches[1] ?? [];
+
+        if (empty($placeholders)) {
+            throw new Exception("Rule must contain at least one valid placeholder.");
+        }
+
+        $newRuleData = [];
+
+        foreach ($placeholders as $fieldPath) {
+            $parts = explode('.', $fieldPath);
+            if (count($parts) !== 2) {
+                throw new Exception("Invalid field format: {$fieldPath}");
+            }
+
+            [$groupKey, $fieldName] = $parts;
+            $fieldName = lcfirst(str_replace(' ', '', $fieldName));
+
+            // Xử lý version
+            if ($groupKey === 'this') {
+                $item = [
+                    'version' => [
+                        'id' => $version->id
+                    ]
+                ];
+
+                if (in_array($fieldName, $defaultFields)) {
+                    $item['version']['defaultFields'] = [
+                        $fieldName => $fieldName === 'type' ? ($version->type->name ?? null) : ($version->{$fieldName} ?? null)
+                    ];
+                } else {
+                    $newFieldName = $this->formatLabel($fieldName);
+                    $field = $version->additionalFields->where('name', $newFieldName)->first();
+                    if (!$field) {
+                        throw new Exception("Field '{$fieldName}' not found in version additionalFields.");
+                    }
+                    $item['version']['additionalFields'] = [
+                        $fieldName => $field->value ?? null
+                    ];
+                }
+
+                $newRuleData[] = $item;
+            }
+            // Xử lý group
+            else {
+                $group = $findGroupByCamel($groupKey, $version->id);
+                // echo("Group '{$group}', groupkey '{$groupKey}'");
+                if (!$group) {
+                    throw new Exception("Group '{$groupKey}' not found.");
+                }
+
+                $item = [
+                    'group' => [
+                        'id' => $group->id
+                    ]
+                ];
+
+                $values = [];
+                foreach ($group->groupParts as $groupPart) {
+                    $versionInGroup = $groupPart->version;
+
+                    if (in_array($fieldName, $defaultFields)) {
+                        $values[] = $fieldName === 'type'
+                            ? ($versionInGroup->type->name ?? null)
+                            : ($versionInGroup->{$fieldName} ?? null);
+                    } else {
+                        $newFieldName = $this->formatLabel($fieldName);
+                        $field = $versionInGroup->additionalFields->where('name', $newFieldName)->first();
+                        if ($field) {
+                            $values[] = $field->value;
+                        }
+                    }
+                }
+
+                $values = array_unique(array_filter($values));
+                if (empty($values)) {
+                    throw new Exception("Field '{$fieldName}' not found in group '{$group->name}'");
+                }
+
+                if (in_array($fieldName, $defaultFields)) {
+                    $item['group']['defaultFields'] = [
+                        $fieldName => $values
+                    ];
+                } else {
+                    $item['group']['additionalFields'] = [
+                        $fieldName => $values
+                    ];
+                }
+
+                $newRuleData[] = $item;
+            }
+        }
+
+        // Cập nhật codebuilder nếu tất cả field đều hợp lệ
+        $updated = $this->codeBuilderRepository->update($codebuilder->id, [
+            'rule' => $rule,
+            'rule_data' => json_encode($newRuleData, JSON_UNESCAPED_UNICODE)
         ]);
-        $code = $this->generatedCodeService->update($codebuilder->id);
-        if (empty($code))
-            throw new Exception("ko cập nhật code khi store codebuilder");
 
-        return $newCodeBuilder;
+        $this->generatedCodeService->update($codebuilder->id);
+
+        return $updated;
     }
+    // public function storeRule(array $data)
+    // {
+    //     $request = new UpdateCodeBuilderRequest();
+    //     $request->merge($data);
+    //     $request->setMethod('POST');
+
+    //     // Validate input
+    //     $validator = Validator::make($request->all(), $request->rules());
+    //     if ($validator->fails()) {
+    //         throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
+    //     }
+
+    //     $codebuilder = $this->codeBuilderRepository->find($data['id']);
+    //     $version = $this->versionRepository->findById($codebuilder->version_id);
+    //     if (empty($version))
+    //         throw new Exception("Version not found!");
+
+    //     $newCodeBuilder = $this->codeBuilderRepository->update($data['id'], [
+    //         'rule' => $data['rule']
+    //     ]);
+    //     $code = $this->generatedCodeService->update($codebuilder->id);
+    //     if (empty($code))
+    //         throw new Exception("ko cập nhật code khi store codebuilder");
+
+    //     return $newCodeBuilder;
+    // }
 
     public function addPropertyToCodebuilder(array $data)
     {
@@ -144,6 +299,7 @@ class CodeBuilderService
             } else {
                 // Xử lý additional field
                 $additionalField = $version->additionalFields->where('name', $fieldName)->first();
+                $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
                 $newData['version']['additionalFields'] = [
                     $fieldName => $additionalField->value ?? null
                 ];
@@ -183,7 +339,7 @@ class CodeBuilderService
                         $values[] = $additionalField->value;
                     }
                 }
-
+                $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
                 $newData['group']['additionalFields'] = [
                     $fieldName => array_unique(array_filter($values))
                 ];
@@ -195,7 +351,7 @@ class CodeBuilderService
 
         // Thêm dữ liệu mới vào mảng hiện có
         $existingRuleData[] = $newData;
-        $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
+
 
         // Cập nhật rule
         $groupName = empty($data['group_id']) ? 'this' : lcfirst(str_replace(' ', '', $group->name));
@@ -243,4 +399,111 @@ class CodeBuilderService
     {
         return Codebuilder::with('version')->where('version_id', $id)->orderByDesc('id')->get();
     }
+
+    // function splitRuleStringToRule(string $rule): array
+    // {
+    //     $parts = [];
+    //     $buffer = '';
+    //     $length = strlen($rule);
+
+    //     for ($i = 0; $i < $length; $i++) {
+    //         $char = $rule[$i];
+
+    //         if ($char === '{') {
+    //             // Đẩy buffer nếu có
+    //             if ($buffer !== '') {
+    //                 $parts[] = $buffer;
+    //                 $buffer = '';
+    //             }
+    //             $buffer .= '{';
+    //         } elseif ($char === '}') {
+    //             $buffer .= '}';
+    //             $parts[] = $buffer;
+    //             $buffer = '';
+    //         } elseif ($char === ' ') {
+    //             if ($buffer !== '') {
+    //                 $parts[] = $buffer;
+    //                 $buffer = '';
+    //             }
+    //         } else {
+    //             $buffer .= $char;
+    //         }
+    //     }
+
+    //     if ($buffer !== '') {
+    //         $parts[] = $buffer;
+    //     }
+
+    //     return $parts;
+    // }
+
+    // function generateCodeFromRule(array $parts, Version $version, Group $group): string
+    // {
+    //     $result = '';
+
+    //     foreach ($parts as $part) {
+    //         $trimmed = trim($part);
+
+    //         // Kiểm tra phần tử có dạng { ... }
+    //         if (strlen($trimmed) >= 2 && $trimmed[0] === '{' && $trimmed[strlen($trimmed) - 1] === '}') {
+    //             $content = substr($trimmed, 1, -1); // bỏ dấu { và }
+    //             $dotPos = strpos($content, '.');
+
+    //             if ($dotPos !== false) {
+    //                 // Có dấu chấm, tách thành phần trước và sau
+    //                 $beforeDot = substr($content, 0, $dotPos);
+    //                 $afterDot = substr($content, $dotPos + 1);
+
+    //                 $defaultFields = ['name', 'code', 'type'];
+    //                 if ($beforeDot === 'this') {
+    //                     if (in_array($afterDot, $defaultFields)) {
+    //                         // Default
+    //                         if ($afterDot === 'type') {
+    //                             $afterDot = $version->type->name;
+    //                         } else {
+    //                             $afterDot = $version->{$afterDot} ?? null;
+    //                         }
+    //                         $result .= $afterDot;
+    //                     } else {
+    //                         // Addtional
+    //                         $additionalField = $version->additionalFields->where('name', $afterDot)->first();
+    //                         $afterDot = $additionalField->value ?? null;
+    //                         $result .= $afterDot;
+    //                     }
+    //                 } else {
+    //                     if (in_array($afterDot, $defaultFields)) {
+    //                         // Lấy dữ liệu từ các version trong group
+    //                         $values = [];
+    //                         foreach ($group->groupParts as $groupPart) {
+    //                             $version = $groupPart->version; // Truy cập trực tiếp
+    //                             if ($afterDot === 'type') {
+    //                                 $result .= $version->type->name ?? null;
+    //                             } else {
+    //                                 $result .= $version->{$afterDot} ?? null;
+    //                             }
+    //                         }
+    //                     } else {
+    //                         // Lấy additional fields từ các version trong group
+    //                         $values = [];
+    //                         foreach ($group->groupParts as $groupPart) {
+    //                             $version = $groupPart->version; // Truy cập trực tiếp
+    //                             $additionalField = $version->additionalFields->where('name', $afterDot)->first();
+    //                             if ($additionalField) {
+    //                                 $result .= $additionalField->value;
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             } else {
+    //                 // Không có dấu chấm, giữ nguyên toàn bộ
+    //                 $result .= $part;
+    //             }
+    //         } else {
+    //             // Không phải {...}, giữ nguyên
+    //             $result .= $part;
+    //         }
+    //     }
+
+    //     return $result;
+    // }
 }
