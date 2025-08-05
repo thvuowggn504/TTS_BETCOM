@@ -198,13 +198,11 @@ class CodeBuilderService
                     } else {
                         $newFieldName = $this->formatLabel($fieldName);
                         $field = $versionInGroup->additionalFields->where('name', $newFieldName)->first();
-                        if ($field) {
-                            $values[] = $field->value;
-                        }
+                        $values[] = $field ? $field->value : "";
                     }
                 }
 
-                $values = array_unique(array_filter($values));
+                $values = array_unique($values);
                 if (empty($values)) {
                     throw new Exception("Field '{$fieldName}' not found in group '{$group->name}'");
                 }
@@ -335,13 +333,11 @@ class CodeBuilderService
                 foreach ($group->groupParts as $groupPart) {
                     $version = $groupPart->version; // Truy cập trực tiếp
                     $additionalField = $version->additionalFields->where('name', $fieldName)->first();
-                    if ($additionalField) {
-                        $values[] = $additionalField->value;
-                    }
+                    $values[] = $additionalField ? $additionalField->value : "";
                 }
                 $fieldName = lcfirst(str_replace(' ', '', $data['field_name']));
                 $newData['group']['additionalFields'] = [
-                    $fieldName => array_unique(array_filter($values))
+                    $fieldName => array_unique($values)
                 ];
             }
         }
@@ -436,7 +432,6 @@ class CodeBuilderService
 
     //     return $parts;
     // }
-
     // function generateCodeFromRule(array $parts, Version $version, Group $group): string
     // {
     //     $result = '';
