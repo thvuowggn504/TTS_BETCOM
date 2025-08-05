@@ -85,7 +85,6 @@ class CodeBuilderService
         $request->merge($data);
         $request->setMethod('POST');
 
-        // Validate input
         $validator = Validator::make($request->all(), $request->rules());
         if ($validator->fails()) {
             throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
@@ -101,34 +100,24 @@ class CodeBuilderService
             throw new Exception("Version not found!");
         }
 
-        // Danh sách group hiện có
-        $allGroups = Group::with(['groupParts.part.versions.additionalFields', 'groupParts.version.additionalFields'])->get();
+        $allGroups = Group::with([
+            'groupParts.part.versions.additionalFields',
+            'groupParts.version.additionalFields',
+            'version'
+        ])->get();
 
-        // Danh sách field mặc định
         $defaultFields = ['name', 'code', 'type'];
 
-        // Hàm chuyển tên group về dạng camelCase
-        $toCamelCase = function (string $str): string {
-            $str = preg_replace('/[^a-zA-Z0-9 ]/', '', $str);
-            $words = explode(' ', strtolower($str));
-            $camel = array_shift($words);
-            foreach ($words as $word) {
-                $camel .= ucfirst($word);
-            }
-            return $camel;
-        };
-
-        // Tìm group theo camelCase
-        $findGroupByCamel = function ($camelName, $versionId) use ($allGroups, $toCamelCase) {
+        // Tìm group theo name_id và version_id
+        $findGroupByNameId = function ($nameId, $versionId) use ($allGroups) {
             foreach ($allGroups as $group) {
-                if ($toCamelCase($group->name) === $camelName && $group->version->id == $versionId) {
+                if ($group->version->id == $versionId && $group->name_id === $nameId) {
                     return $group;
                 }
             }
             return null;
         };
 
-        // Bắt đầu xử lý rule
         $rule = $data['rule'];
         preg_match_all('/\{([^{}]+)\}/', $rule, $matches);
         $placeholders = $matches[1] ?? [];
@@ -148,7 +137,7 @@ class CodeBuilderService
             [$groupKey, $fieldName] = $parts;
             $fieldName = lcfirst(str_replace(' ', '', $fieldName));
 
-            // Xử lý version
+            // Nếu là version hiện tại (this)
             if ($groupKey === 'this') {
                 $item = [
                     'version' => [
@@ -158,25 +147,23 @@ class CodeBuilderService
 
                 if (in_array($fieldName, $defaultFields)) {
                     $item['version']['defaultFields'] = [
-                        $fieldName => $fieldName === 'type' ? ($version->type->name ?? null) : ($version->{$fieldName} ?? null)
+                        $fieldName => $fieldName === 'type'
+                            ? ($version->type->name ?? null)
+                            : ($version->{$fieldName} ?? null)
                     ];
                 } else {
                     $newFieldName = $this->formatLabel($fieldName);
                     $field = $version->additionalFields->where('name', $newFieldName)->first();
-                    if (!$field) {
-                        throw new Exception("Field '{$fieldName}' not found in version additionalFields.");
-                    }
                     $item['version']['additionalFields'] = [
-                        $fieldName => $field->value ?? null
+                        $fieldName => $field ? $field->value : ""
                     ];
                 }
 
                 $newRuleData[] = $item;
             }
-            // Xử lý group
+            // Nếu là group
             else {
-                $group = $findGroupByCamel($groupKey, $version->id);
-                // echo("Group '{$group}', groupkey '{$groupKey}'");
+                $group = $findGroupByNameId($groupKey, $version->id);
                 if (!$group) {
                     throw new Exception("Group '{$groupKey}' not found.");
                 }
@@ -193,8 +180,8 @@ class CodeBuilderService
 
                     if (in_array($fieldName, $defaultFields)) {
                         $values[] = $fieldName === 'type'
-                            ? ($versionInGroup->type->name ?? null)
-                            : ($versionInGroup->{$fieldName} ?? null);
+                            ? ($versionInGroup->type->name ?? "")
+                            : ($versionInGroup->{$fieldName} ?? "");
                     } else {
                         $newFieldName = $this->formatLabel($fieldName);
                         $field = $versionInGroup->additionalFields->where('name', $newFieldName)->first();
@@ -203,9 +190,6 @@ class CodeBuilderService
                 }
 
                 $values = array_unique($values);
-                if (empty($values)) {
-                    throw new Exception("Field '{$fieldName}' not found in group '{$group->name}'");
-                }
 
                 if (in_array($fieldName, $defaultFields)) {
                     $item['group']['defaultFields'] = [
@@ -221,7 +205,7 @@ class CodeBuilderService
             }
         }
 
-        // Cập nhật codebuilder nếu tất cả field đều hợp lệ
+        // Cập nhật lại rule_data + rule
         $updated = $this->codeBuilderRepository->update($codebuilder->id, [
             'rule' => $rule,
             'rule_data' => json_encode($newRuleData, JSON_UNESCAPED_UNICODE)
@@ -231,32 +215,6 @@ class CodeBuilderService
 
         return $updated;
     }
-    // public function storeRule(array $data)
-    // {
-    //     $request = new UpdateCodeBuilderRequest();
-    //     $request->merge($data);
-    //     $request->setMethod('POST');
-
-    //     // Validate input
-    //     $validator = Validator::make($request->all(), $request->rules());
-    //     if ($validator->fails()) {
-    //         throw new Exception("Validation failed: " . implode(", ", $validator->errors()->all()));
-    //     }
-
-    //     $codebuilder = $this->codeBuilderRepository->find($data['id']);
-    //     $version = $this->versionRepository->findById($codebuilder->version_id);
-    //     if (empty($version))
-    //         throw new Exception("Version not found!");
-
-    //     $newCodeBuilder = $this->codeBuilderRepository->update($data['id'], [
-    //         'rule' => $data['rule']
-    //     ]);
-    //     $code = $this->generatedCodeService->update($codebuilder->id);
-    //     if (empty($code))
-    //         throw new Exception("ko cập nhật code khi store codebuilder");
-
-    //     return $newCodeBuilder;
-    // }
 
     public function addPropertyToCodebuilder(array $data)
     {
@@ -348,9 +306,8 @@ class CodeBuilderService
         // Thêm dữ liệu mới vào mảng hiện có
         $existingRuleData[] = $newData;
 
-
         // Cập nhật rule
-        $groupName = empty($data['group_id']) ? 'this' : lcfirst(str_replace(' ', '', $group->name));
+        $groupName = empty($data['group_id']) ? 'this' : $group->name_id;
         $newPlaceholder = '{' . $groupName . '.' . $fieldName . '}';
         // Giữ nguyên các rule cũ và THÊM mới vào cuối
         $updatedRule = $current->rule . $newPlaceholder;

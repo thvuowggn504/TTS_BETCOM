@@ -100,6 +100,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('assembler_id');
             $table->string('name', 100);
+            $table->string('name_id', 100);
             $table->unsignedBigInteger('type_id')->nullable(); // Bổ sung trường type_id
             $table->unsignedBigInteger('version_id')->nullable();
             $table->unique(['version_id', 'name']);

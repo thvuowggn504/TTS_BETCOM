@@ -103,6 +103,7 @@ class PartService
                 $this->partRepository->createGroup([
                     'assembler_id' => $part->id,
                     'name' => 'Default Group',
+                    'name_id' => 'defaultGroup',
                     'version_id' => $version->id,
                     'is_optional' => false,
                 ]);
