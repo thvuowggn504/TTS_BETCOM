@@ -121,6 +121,7 @@ input CreatePartInput {
     additional_fields: [AdditionalFieldInput!] # Các trường bổ sung theo type
     enable_assembly_groups: Boolean!
     addToGroup: Boolean = false
+    group_id: ID!
 }
 
 input AdditionalFieldInput {
@@ -365,16 +366,6 @@ extend type Query {
 }
 
 type Query {
-    additionalFieldsByVersionId(version_id: ID!): [AdditionalField!]!
-        @field(
-            resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getAllVersion"
-        )
-
-    additionalField(id: ID!): AdditionalField
-        @field(
-            resolver: "App\\GraphQL\\Resolvers\\AdditionalFieldResolver@getVersionById"
-        )
-
     getParts(published: Boolean!): [Part!]!
         @field(
             resolver: "App\\GraphQL\\Queries\\PartQuery@getPartsByPublishedStatus"
@@ -428,4 +419,9 @@ extend type Mutation {
     #     @field(
     #         resolver: "App\\GraphQL\\Mutations\\PartResolver@duplicateFullPart"
     #     )
+}
+
+type Mutation {
+    createAndAddPartToGroup(input: CreatePartInput!): Part
+        @field(resolver: "PartResolver@createAndAddPartToGroup")
 }

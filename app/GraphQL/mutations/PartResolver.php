@@ -65,4 +65,9 @@ class PartResolver
     //         $args['code']
     //     );
     // }
+
+    public function createAndAddPartToGroup($_, array $args)
+    {
+        return app(PartService::class)->createAndAddPartToGroup($args['input']);
+    }
 }
