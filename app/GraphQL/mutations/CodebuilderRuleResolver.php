@@ -46,4 +46,8 @@ class CodebuilderRuleResolver
         // $this->generatedCodeService->update($codebuilder->id);
         return $codebuilder;
     }
+
+    // public function splitRuleStringToRule($_, array $args){
+    //     return $this->codeBuilderService->splitRuleStringToRule($args['rule']);
+    // }
 }
